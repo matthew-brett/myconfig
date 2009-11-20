@@ -1,0 +1,3 @@
+[nosetests]
+#verbosity=10
+#with-doctest=1
