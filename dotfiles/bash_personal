@@ -1,0 +1,74 @@
+# -*- sh -*-  Personal bash settings
+# Put this at the end of your .bashrc file
+# # Source personal definitions
+# if [ -f ~/.bash_personal ]; then
+#         . ~/.bash_personal
+# fi
+
+############################################################################
+# some more ls aliases
+alias ll='ls -l'
+#alias la='ls -A'
+#alias l='ls -CF'
+
+# update for ubuntu
+alias apt-up='sudo apt-get update;sudo apt-get -y --force-yes dselect-upgrade'
+
+# CIRL SVN directory
+svncirl=https://cirl.berkeley.edu/admin-svn/
+
+# Editor
+if [[ $UNAME != "Darwin" ]]; then  # not Mac
+    export EDITOR=jed
+fi
+
+############################################################################
+#
+# Load basic bash utilities (handy functions and constants)
+#
+. $HOME/.bash_utils
+
+############################################################################
+#
+# Configure paths, using the path generation functions in .bash_utils
+#
+# These are the prefixes I typically use as --prefix options for installation
+# of packages.  There's a method to the madness of having several of them, and
+# in this order.  The ones at the top end up first in the generated path specs,
+# so they take precedence.
+pfx="$pfx $HOME/tmp/junk"  # quick and dirty testing
+pfx="$pfx $HOME/tmp/local"  # temporary, stable testing
+pfx="$pfx $HOME/usr"  # codes *I* have written
+pfx="$pfx $HOME/usr/opt"  # I don't sync this across computers
+pfx="$pfx $HOME/usr/local"  # default prefix for third-party installs
+pfx="$pfx /local"  # used in some machines I work on
+pfx="$pfx /opt"  # vendor directory for commercial stuff
+
+# Initialize $PATH with sbin locations so I can find system tools
+export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
+
+# Now, set all common paths based on the prefix list just built.  The
+# export_paths function ensures that all commonly needed paths get correctly
+# set and exported to the environment.
+export_paths "$pfx"
+
+# Make 2.4 and 2.5 specific ones, so it's easy to switch with a simple alias
+PYTHONPATH24=`mk_pythonpath "$pfx" 2.4`
+PYTHONPATH25=`mk_pythonpath "$pfx" 2.5`
+PYTHONPATH26=`mk_pythonpath "$pfx" 2.6`
+
+# Search paths for LaTeX (Dont' forget the final colons.  The null entry `::'
+# denotes `default system directories' -- try finding that in the
+# documentation.)  Note that these *must* go under ~/texmf, because that
+# particular path is hardcoded in LaTeX and is not overridable by the user.
+# While one could keep ~/texmf for default package installs and use other
+# locations for {tex/bib/bst}inputs, I prefer to centralize all Tex stuff in
+# one place.  Since I can't do it in ~/usr/tex, then I'll just keep everything
+# TeX related in ~/texmf
+export TEXINPUTS=.:$HOME/texmf/texinputs::
+export BIBINPUTS=.:$HOME/texmf/bibinputs::
+export BSTINPUTS=.:$HOME/texmf/bstinputs::
+
+############################################################################
+
+export MATLABPATH=$HOME/matlab:$HOME/matlab/m2html
