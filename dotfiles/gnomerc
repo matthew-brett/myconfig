@@ -1,0 +1,3 @@
+# setup gnome environment python path
+PYTHONSP=lib/python2.6/site-packages
+export PYTHONPATH=$HOME/usr/local/$PYTHONSP:/usr/local/$PYTHONSP

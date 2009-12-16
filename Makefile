@@ -2,7 +2,7 @@
 
 DOTBACKUP = $(HOME)/.backup_dotfiles
 
-DOTFILES = bash_personal bash_utils gitconfig noserc
+DOTFILES = bash_personal bash_utils gitconfig noserc gnomerc
 
 dotfiles: backup_directory
 	for filename in $(DOTFILES); do \
