@@ -1,0 +1,34 @@
+#!/usr/bin/env python
+''' Removes stray .pyc and ~ files
+
+'''
+import os
+import sys
+import shutil
+
+removends = ['.pyc', '~', '.so', '#']
+removedirs = ['build']
+
+try:
+    src_loc = sys.argv[1]
+except IndexError:
+    src_loc = os.path.abspath(os.curdir)
+    
+def outfunc(arg, dirname, fnames):
+    for fname in fnames:
+        fullfile = os.path.join(dirname, fname)
+        if os.path.isdir(fullfile):
+            if fname in removedirs:
+                print 'Removing ' + fullfile
+                shutil.rmtree(fullfile)
+            else:
+                continue
+        for end in removends:
+            if fname.endswith(end):
+                print 'Removing ' + fullfile
+                os.remove(fullfile)
+            
+if __name__ == '__main__':
+    os.path.walk(src_loc, outfunc, None)
+    
+
