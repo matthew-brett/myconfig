@@ -10,3 +10,5 @@
 [color]
 	diff = auto
 	status = true
+[branch]
+	autosetupmerge = true
