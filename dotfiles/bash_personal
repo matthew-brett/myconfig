@@ -17,11 +17,6 @@ alias apt-up='sudo apt-get update;sudo apt-get -y --force-yes dselect-upgrade'
 # CIRL SVN directory
 svncirl=https://cirl.berkeley.edu/admin-svn/
 
-# Editor
-if [[ $UNAME != "Darwin" ]]; then  # not Mac
-    export EDITOR=jed
-fi
-
 ############################################################################
 #
 # Load basic bash utilities (handy functions and constants)
@@ -72,3 +67,16 @@ export BSTINPUTS=.:$HOME/texmf/bstinputs::
 ############################################################################
 
 export MATLABPATH=$HOME/matlab:$HOME/matlab/m2html
+
+# system specific settings
+if [[ $UNAME != "Darwin" ]]; then  # not Mac
+    export EDITOR=jed
+else # is Mac
+    export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH
+    export MACOSX_DEPLOYMENT_TARGET=10.6
+fi
+
+# default installation location variable for convenience
+export IPREFIX=$HOME/usr/local
+
+
