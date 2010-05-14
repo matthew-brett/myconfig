@@ -79,4 +79,7 @@ fi
 # default installation location variable for convenience
 export IPREFIX=$HOME/usr/local
 
+# git completion
+. .git-completion
+PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
 
