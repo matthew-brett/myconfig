@@ -1,5 +1,5 @@
 # -*- sh -*-  Personal bash settings
-# Put this at the end of your .bashrc file
+# Put this at the end of your .bashrc or .bash_profile file
 # # Source personal definitions
 # if [ -f ~/.bash_personal ]; then
 #         . ~/.bash_personal
@@ -80,6 +80,6 @@ fi
 export IPREFIX=$HOME/usr/local
 
 # git completion
-. .git-completion
+. $HOME/.git-completion
 PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
 
