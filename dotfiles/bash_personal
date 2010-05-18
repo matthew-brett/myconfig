@@ -83,3 +83,9 @@ export IPREFIX=$HOME/usr/local
 . $HOME/.git-completion
 PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
 
+# install virtualenvwrapper functions if available
+venv_wrap=`which virtualenvwrapper.sh`
+if [ -f "$venv_wrap" ]; then
+    export WORKON_HOME=$HOME/.virtualenvs
+    source $venv_wrap
+fi
