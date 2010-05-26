@@ -72,7 +72,7 @@ export MATLABPATH=$HOME/matlab:$HOME/matlab/m2html
 if [[ $UNAME != "Darwin" ]]; then  # not Mac
     export EDITOR=jed
 else # is Mac
-    export DYLD_LIBRARY_PATH=$LD_LIBRARY_PATH
+    #export DYLD_LIBRARY_PATaH=$LD_LIBRARY_PATH
     export MACOSX_DEPLOYMENT_TARGET=10.6
 fi
 
@@ -81,7 +81,7 @@ export IPREFIX=$HOME/usr/local
 
 # git completion
 . $HOME/.git-completion
-PS1='[\u@\h \W$(__git_ps1 " (%s)")]\$ '
+PS1='[\u@\h ${PWD/$HOME/~}$(__git_ps1 " (%s)")]\$ '
 
 # install virtualenvwrapper functions if available
 venv_wrap=`which virtualenvwrapper.sh`
