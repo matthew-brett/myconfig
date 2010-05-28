@@ -8,16 +8,17 @@ import mimetypes
 import argparse
 
 out_target = pjoin(os.environ['HOME'], '.gnome2', 'backgrounds.xml')
+options = 'spanner' 
 
 xml_template = \
 '''<wallpaper deleted="false">
    <name>NAME</name>
    <filename>FILE</filename>
-   <options>zoom</options>
+   <options>%s</options>
    <shade_type>solid</shade_type>
    <pcolor>#68684b4b3333</pcolor>
    <scolor>#68684b4b3333</scolor>
-</wallpaper>'''
+</wallpaper>''' % options
 
 xml_header = \
 '''<?xml version="1.0"?>
