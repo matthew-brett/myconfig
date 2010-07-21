@@ -1,0 +1,5 @@
+syntax on
+" turn on line numbers
+set number
+" turn on indentation
+filetype plugin indent on
