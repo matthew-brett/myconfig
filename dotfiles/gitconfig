@@ -1,5 +1,5 @@
 [core]
-	editor = emacs
+	editor = vim
 [user]
 	name = Matthew Brett
 	email = matthew.brett@gmail.com
@@ -12,3 +12,7 @@
 	status = true
 [branch]
 	autosetupmerge = true
+[url "git://github.com/"]
+        insteadof = gh:
+[url "git@github.com:"]
+        pushInsteadOf = git://github.com/

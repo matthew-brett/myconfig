@@ -1,3 +1,5 @@
+" Allow hiding of changed buffers
+set hidden
 " Use syntax
 syntax on
 " turn on line numbers; may need to toggle off for pasting
