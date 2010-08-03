@@ -7,7 +7,7 @@ set number
 " turn on indentation
 filetype plugin indent on
 " set filename autocompletion to be bash-like
-set wildmode=longest:full
+set wildmode=longest:full,full
 set wildmenu
 " Colors
 colorscheme desert
