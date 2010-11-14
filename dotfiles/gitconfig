@@ -14,3 +14,4 @@
 	autosetupmerge = true
 [merge]
 	log = true
+	tool = vimdiff
