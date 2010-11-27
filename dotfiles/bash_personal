@@ -27,6 +27,13 @@ alias apt-up='sudo apt-get update;sudo apt-get -y --force-yes dselect-upgrade'
 # remote gvimming
 alias gvr='$GUI_EDITOR --remote-silent'
 
+# pushd and go to python module directory
+pushdp () {
+ pushd "$(python -c "import os.path as _, ${1}; \
+   print _.dirname(_.realpath(${1}.__file__[:-1]))"
+ )"
+}
+
 # CIRL SVN directory
 svncirl=https://cirl.berkeley.edu/admin-svn/
 
