@@ -21,6 +21,5 @@ backup_directory:
 virtualenvs:
 	- mkdir $(VENV_DIR)
 	cp -r virtualenvs/* $(VENV_DIR)
-	ln -s `python -c 'import os; import IPython; print os.path.dirname(IPython.__file__)'` $(VENV_DIR)/virtual-packages/IPython
 
 .PHONY: virtualenvs 
