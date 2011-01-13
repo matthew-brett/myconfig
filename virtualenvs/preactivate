@@ -1,6 +1,4 @@
 #!/bin/bash
 # This hook is run before every virtualenv is activated.
 export OLD_PYTHONPATH=$PYTHONPATH
-export OLD_PATH=$PATH
-export PYTHONPATH=$WORKON_HOME/virtual-packages
-export PATH=$WORKON_HOME/virtual-bin:$PATH
+export PYTHONPATH=
