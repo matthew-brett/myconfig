@@ -12,10 +12,11 @@ DOTBACKUP = pjoin(HOME, '_backup_dotfiles')
 APPDATA = os.environ['APPDATA']
 BZRDIR = pjoin(APPDATA, 'bazaar', '2.0')
 DOTFILE_MAP = [('gitconfig', '.gitconfig'),
-		('noserc', 'nose.cfg'),
-		('bash_personal', '.bash_personal'),
-		('bash_utils', '.bash_utils'),
-		('hgrc', '.hgrc')]
+               ('noserc', 'nose.cfg'),
+               ('bash_personal', '.bash_personal'),
+               ('bash_utils', '.bash_utils'),
+               ('hgrc', '.hgrc'),
+               ('bash_keychain_lite', '.bash_keychain_lite')]
 
 def backupdir():
     try:
@@ -38,7 +39,7 @@ def ordinary_dotfiles():
 
 def bzrfile():
     try:
-        os.mkdir(BZRDIR)
+        os.makedirs(BZRDIR)
     except (WindowsError, IOError):
         pass
     bzrconf = 'bazaar.conf'
