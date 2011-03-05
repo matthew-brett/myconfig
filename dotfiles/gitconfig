@@ -1,17 +1,18 @@
 [core]
-	editor = vim
+    editor = vim
 [user]
-	name = Matthew Brett
-	email = matthew.brett@gmail.com
+    name = Matthew Brett
+    email = matthew.brett@gmail.com
 [alias]
-	st = status
-        stat = status
-	co = checkout
+    st = status
+    stat = status
+    co = checkout
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)[%an]%Creset' --abbrev-commit --date=relative
 [color]
-	diff = auto
-	status = true
+    diff = auto
+    status = true
 [branch]
-	autosetupmerge = true
+    autosetupmerge = true
 [merge]
-	log = true
-	tool = vimdiff
+    log = true
+    tool = gvimdiff
