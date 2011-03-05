@@ -16,3 +16,6 @@
 [merge]
     log = true
     tool = gvimdiff
+    conflictstyle = diff3
+[mergetool]
+    prompt = false
