@@ -19,3 +19,5 @@
     conflictstyle = diff3
 [mergetool]
     prompt = false
+[push]
+    default = tracking
