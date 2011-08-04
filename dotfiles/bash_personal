@@ -106,3 +106,14 @@ fi
 function pushdp {
    pushd `python -c "import os; import $1; print os.path.dirname($1.__file__)"`
 }
+
+# vi bash command line editing
+# http://www.jukie.net/bart/blog/20040326082602
+set -o vi
+set editing-mode vi
+set keymap vi
+bind -m vi-insert "\C-p":previous-history
+bind -m vi-insert "\C-n":next-history
+bind -m vi-insert "\C-a":beginning-of-line
+bind -m vi-insert "\C-e":end-of-line
+
