@@ -96,9 +96,9 @@ export IPREFIX=$HOME/usr/local
 PS1='[\u@\h ${PWD/$HOME/~}$(__git_ps1 " (%s)")]\$ '
 
 # install virtualenvwrapper functions if available
-export WORKON_HOME=$HOME/.virtualenvs
 venv_wrap=`which virtualenvwrapper.sh`
 if [ -f "$venv_wrap" ]; then
+    export WORKON_HOME=$HOME/.virtualenvs
     source $venv_wrap
 fi
 
@@ -116,4 +116,5 @@ bind -m vi-insert "\C-p":previous-history
 bind -m vi-insert "\C-n":next-history
 bind -m vi-insert "\C-a":beginning-of-line
 bind -m vi-insert "\C-e":end-of-line
+bind -m vi-insert "\C-k":kill-line
 
