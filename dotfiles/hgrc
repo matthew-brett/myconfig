@@ -1,3 +1,5 @@
 # This is a Mercurial configuration file.
 [ui]
 username = Matthew Brett <matthew.brett@gmail.com>
+[extensions]
+pager =
