@@ -21,7 +21,7 @@ DOTFILE_MAP = [('gitconfig', '.gitconfig'),
 def backupdir():
     try:
         os.mkdir(DOTBACKUP)
-    except (WindowsError, IOError):
+    except (WindowsError, IOError, OSError):
         pass
 
 
@@ -40,7 +40,7 @@ def ordinary_dotfiles():
 def bzrfile():
     try:
         os.makedirs(BZRDIR)
-    except (WindowsError, IOError):
+    except (WindowsError, IOError, OSError):
         pass
     bzrconf = 'bazaar.conf'
     in_full = pjoin('dotfiles', bzrconf)
