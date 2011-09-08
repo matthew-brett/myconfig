@@ -17,6 +17,9 @@ else # is Mac
 fi
 # Pager should be defined for mercurial
 export PAGER=less
+# Less needs to interpret 'raw' output apparently.  Otherwise ipython displays
+# the strings mangled with ESCs
+export LESS=-R
 
 # some more ls aliases
 alias ll='ls -l'
