@@ -72,10 +72,14 @@ export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
 # set and exported to the environment.
 export_paths "$pfx"
 
-# Make 2.4 and 2.5 specific ones, so it's easy to switch with a simple alias
+# Make Python version specific ones, so it's easy to switch with a simple alias
 PYTHONPATH24=`mk_pythonpath "$pfx" 2.4`
 PYTHONPATH25=`mk_pythonpath "$pfx" 2.5`
 PYTHONPATH26=`mk_pythonpath "$pfx" 2.6`
+PYTHONPATH26=`mk_pythonpath "$pfx" 2.7`
+
+# Add the standard easy_install --user bin path
+export PATH=$PATH:$HOME/.local/bin
 
 # Search paths for LaTeX (Dont' forget the final colons.  The null entry `::'
 # denotes `default system directories' -- try finding that in the
