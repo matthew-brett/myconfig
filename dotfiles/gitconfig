@@ -21,3 +21,5 @@
     prompt = false
 [push]
     default = tracking
+[github]
+	user = matthew-brett
