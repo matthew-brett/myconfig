@@ -26,10 +26,14 @@ def bt(cmd):
 def gh_url(user, reponame, mode='git'):
     if mode == 'git':
         fmt = 'git://github.com/{user}/{reponame}.git'
-    if mode == 'https':
+    if mode == 'https-rw':
         fmt = 'https://{user}@github.com/{user}/{reponame}.git'
+    if mode == 'https-ro':
+        fmt = 'https://github.com/{user}/{reponame}.git'
     elif mode == 'ssh':
         fmt = 'git@github.com:{user}/{reponame}.git'
+    else:
+        raise ValueError('Did not expect {0} as mode'.format(mode))
     return fmt.format(user=user, reponame=reponame)
 
 
@@ -50,6 +54,10 @@ def main():
                         help='personal github user name')
     parser.add_argument('--upstream-w', action='store_true',
                         help='whether upstream should be rw')
+    parser.add_argument('--https-rw', action='store_true',
+                        help='whether to use https instead of ssh for rw')
+    parser.add_argument('--https-ro', action='store_true',
+                        help='whether to use https instead of git for ro')
     args = parser.parse_args()
     reponame = args.reponame
     my_user = args.my_user
@@ -62,13 +70,15 @@ def main():
                                "Consider setting your github username with "
                                "``git config --global github.user username``")
     up_user = args.upstream_user
-    fork_repo = gh_url(my_user, reponame, mode='ssh')
+    w_proto = 'https-rw' if args.https_rw else 'ssh'
+    r_proto = 'https-ro' if args.https_ro else 'git'
+    fork_repo = gh_url(my_user, reponame, mode=w_proto)
     if args.upstream_w:
         up_remote = 'upstream-rw'
-        up_repo = gh_url(up_user, reponame, mode='ssh')
+        up_repo = gh_url(up_user, reponame, mode=w_proto)
     else:
         up_remote = 'upstream-ro'
-        up_repo = gh_url(up_user, reponame, mode='git')
+        up_repo = gh_url(up_user, reponame, mode=r_proto)
     check_call('git clone {0}'.format(fork_repo), shell=True)
     os.chdir(reponame)
     check_call('git remote add {0} {1} --fetch'.format(up_remote, up_repo),
