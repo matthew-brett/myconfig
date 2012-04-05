@@ -1,0 +1,7 @@
+! Turn off caps lock
+clear Lock
+! Set L command key to be Control key
+clear Control
+clear Mod4
+add Control = Control_L Super_L Control_R
+add Mod4 = Super_R
