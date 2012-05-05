@@ -12,6 +12,7 @@ DOTBACKUP = pjoin(HOME, '_backup_dotfiles')
 APPDATA = os.environ['APPDATA']
 BZRDIR = pjoin(APPDATA, 'bazaar', '2.0')
 DOTFILE_MAP = [('gitconfig', '.gitconfig'),
+               ('git-completion', '.git-completion'),
                ('noserc', 'nose.cfg'),
                ('bash_personal', '.bash_personal'),
                ('bash_utils', '.bash_utils'),
