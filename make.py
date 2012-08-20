@@ -58,7 +58,7 @@ def main():
     try:
         target = sys.argv[1]
     except IndexError:
-        target == 'dotfiles'
+        target = 'dotfiles'
     if target == 'dotfiles':
         backupdir()
         ordinary_dotfiles()
