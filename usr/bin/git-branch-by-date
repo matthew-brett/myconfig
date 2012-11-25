@@ -1,4 +1,32 @@
-#!/bin/sh
+#!/usr/bin/env python
+# vim: ft=python
 # Show branches by date
-# From http://www.commandlinefu.com/commands/view/2345/show-git-branches-by-date-useful-for-showing-active-branches
-for k in `git branch|sed s/^..//`;do echo -e `git log -1 --pretty=format:"%Cgreen%ci %Cblue%cr%Creset" "$k" --`\\t"$k";done|sort -r
+# Inspired by
+# http://www.commandlinefu.com/commands/view/2345/show-git-branches-by-date-useful-for-showing-active-branches
+import sys
+import re
+from subprocess import Popen, PIPE
+
+PYTHON=sys.executable
+NEED_SHELL = True
+
+def bt(cmd_str):
+    proc = Popen(cmd_str,
+                 stdout = PIPE,
+                 stderr = PIPE,
+                 shell = NEED_SHELL)
+    stdout, stderr = proc.communicate()
+    if proc.returncode != 0:
+        raise RuntimeError('Error running %s\n%s' % (cmd_str, stderr))
+    return stdout
+
+branch_out = bt('git branch ' + ' '.join(sys.argv[1:]))
+branches = []
+for branch in branch_out.split('\n'):
+    branch = branch.strip()
+    if re.match('remotes/[a-zA-Z-_.0-9]+/HEAD -> ', branch):
+        continue
+    res = bt('git log -1 --pretty=format:"%Cgreen%ci %Cblue%cr%Creset"'
+             ' {0} --'.format(branch))
+    branches.append(res.strip() + '\t' + branch)
+print('\n'.join(sorted(branches)[::-1]))
