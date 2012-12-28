@@ -3,8 +3,9 @@
 # Checkin current state of virtualenv
 import os
 import sys
-import re
 from subprocess import Popen, PIPE
+
+from argparse import ArgumentParser
 
 PYTHON=sys.executable
 NEED_SHELL = True
@@ -21,15 +22,41 @@ def bt(cmd_str):
 
 
 def main():
-    msg = ' '.join(sys.argv[1:])
-    if msg == '':
-        raise RuntimeError('Need commit message on command line')
+    parser = ArgumentParser()
+    parser.add_argument('message', type=str,
+                        nargs = '+',
+                        help='commit message first line',
+                       )
+    parser.add_argument('--start-ref', type=str,
+                        help='ref to start commit from')
+    parser.add_argument('--branch', type=str,
+                        help='branch name to commit as')
+    parser.add_argument('--tag', type=str,
+                        help='tag name to commit as')
+    parser.add_argument('--init', action='store_true',
+                        default=False,
+                        help='whether to init the repo')
+    args = parser.parse_args()
+    msg = ' '.join(args.message)
     venv_dir = os.environ.get('VIRTUAL_ENV')
     if venv_dir is None:
-        raise RuntimeError('Are we in a virtualenv?')
+        raise RuntimeError('No VIRTUAL_ENV environment variable; '
+                           'Are we in a virtualenv?')
     os.chdir(venv_dir)
+    if args.init:
+        bt('git init')
+    if args.start_ref:
+        if args.branch:
+            bt('git checkout "%s" "%s"' % (args.branch, args.start_ref))
+        else:
+            bt('git checkout "%s"' % args.start_ref)
+    elif args.branch:
+        bt('git checkout -b "%s"' % args.branch)
     bt('git add .')
     bt('git commit -m "%s"' % msg)
+    if args.tag:
+        bt('git tag "%s"' % args.tag)
+    print('Done')
 
 
 if __name__ == '__main__':
