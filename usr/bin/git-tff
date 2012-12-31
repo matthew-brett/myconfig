@@ -1,0 +1,9 @@
+#!/bin/sh
+# git Tracking Fast Forward
+# Fast forward tracking branch to latest known upstream commit
+# Based on discussion here:
+# http://stackoverflow.com/questions/5083747/write-a-git-alias-for-fast-forward-that-works-in-any-tracking-branch
+branch=$(git symbolic-ref HEAD | cut -d "/" -f 3)
+remote=$(git config --get branch.$branch.remote)
+remote_ref=$(git config --get branch.$branch.merge | cut -d "/" -f 3)
+git merge --ff-only ${remote}/${remote_ref}
