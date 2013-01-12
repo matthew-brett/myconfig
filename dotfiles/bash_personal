@@ -29,11 +29,11 @@ alias ll='ls -l'
 # update for ubuntu
 alias apt-up='sudo apt-get update;sudo apt-get -y --force-yes dselect-upgrade'
 
+# for virtualenvs
+alias cdve='pushd ${VIRTUAL_ENV}'
+
 # remote gvimming
 alias gvr='$GUI_EDITOR --remote-silent'
-
-# CIRL SVN directory
-svncirl=https://cirl.berkeley.edu/admin-svn/
 
 ############################################################################
 #
