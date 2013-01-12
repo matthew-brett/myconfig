@@ -1,0 +1,6 @@
+# screen defaults
+#
+# Every shell a login shell
+shell -${SHELL}
+startup_message off
+defscrollback 5000

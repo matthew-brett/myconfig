@@ -1,7 +1,7 @@
 # Makefile to do stuff with configurations
 
 DOTBACKUP = $(HOME)/.backup_dotfiles
-DOTFILES = bash_personal bash_utils gitconfig noserc gnomerc hgrc git-completion
+DOTFILES = bash_personal bash_utils gitconfig noserc gnomerc hgrc git-completion screenrc
 VENV_DIR = $(HOME)/.virtualenvs
 
 dotfiles: backup_directory bzrcfg
