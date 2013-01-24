@@ -1,0 +1,68 @@
+#!/usr/bin/env python
+# vim: ft=python
+# Checkin current state of virtualenv
+from __future__ import with_statement
+
+import os
+from os.path import join as pjoin
+import sys
+from subprocess import Popen, PIPE
+from hashlib import sha1
+import optparse
+
+PYTHON=sys.executable
+NEED_SHELL = True
+
+def bt(cmd_str):
+    proc = Popen(cmd_str,
+                 stdout = PIPE,
+                 stderr = PIPE,
+                 shell = NEED_SHELL)
+    stdout, stderr = proc.communicate()
+    if proc.returncode != 0:
+        raise RuntimeError('Error running %s\n%s' % (cmd_str, stderr))
+    return stdout
+
+
+def rename_setup_path():
+    """ Rename easy-install.pth with hash name
+    """
+    for path_dir in sys.path:
+        for dirpath, dirnames, filenames in os.walk(path_dir):
+            if not 'easy-install.pth' in filenames:
+                continue
+            old_name = pjoin(dirpath, 'easy-install.pth')
+            with open(old_name, 'rt') as fobj:
+                contents = fobj.read()
+            contents_hash = sha1(contents).hexdigest()
+            new_name = pjoin(dirpath, contents_hash + '.pth')
+            os.rename(old_name, new_name)
+
+
+def main():
+    parser = optparse.OptionParser(usage='%prog <tagname> [<tagname1> ...]')
+    parser.add_option('-f', help='force write tag', dest='force_tag',
+                      default=False, action='store_true')
+    (opts, tags) = parser.parse_args()
+    if len(tags) == 0:
+        parser.print_help()
+        sys.exit(-1)
+    venv_dir = os.environ.get('VIRTUAL_ENV')
+    if venv_dir is None:
+        raise RuntimeError('No VIRTUAL_ENV environment variable; '
+                           'Are we in a virtualenv?')
+    if opts.force_tag:
+        force_tag = ' -f'
+    else:
+        force_tag = ''
+    os.chdir(venv_dir)
+    rename_setup_path()
+    bt('git add .')
+    bt('git commit -m "%s"' % ' '.join(tags))
+    for tag in tags:
+        bt('git tag %s "%s"' % (force_tag, tag))
+    print('Done')
+
+
+if __name__ == '__main__':
+    main()
