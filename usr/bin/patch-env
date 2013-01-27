@@ -32,7 +32,7 @@ def rename_setup_path():
             if not 'easy-install.pth' in filenames:
                 continue
             old_name = pjoin(dirpath, 'easy-install.pth')
-            with open(old_name, 'rt') as fobj:
+            with open(old_name, 'rb') as fobj:
                 contents = fobj.read()
             contents_hash = sha1(contents).hexdigest()
             new_name = pjoin(dirpath, contents_hash + '.pth')
