@@ -1,3 +1,6 @@
+! Reverse scrolling
+! http://onethingwell.org/post/8779215052/reverse-scrolling-x11
+pointer = 1 2 3 5 4
 ! Turn off caps lock
 clear Lock
 ! Set L command key to be Control key
