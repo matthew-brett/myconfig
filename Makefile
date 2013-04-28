@@ -18,7 +18,7 @@ bzrcfg : dotfiles/bazaar.conf
 vmailcfg : dotfiles/vmailrc
 	- mv $(HOME)/.vmail/.vmailrc $(DOTBACKUP)/vmailrc
 	- mkdir -p $(HOME)/.vmail/default
-	cp dotfiles/vmailrc $(HOME)/.vmail/default
+	cp dotfiles/vmailrc $(HOME)/.vmail/default/.vmailrc
 
 backup_directory:
 	- mkdir $(DOTBACKUP)
