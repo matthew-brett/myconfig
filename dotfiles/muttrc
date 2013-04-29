@@ -20,9 +20,9 @@ set folder = "imaps://imap.gmail.com:993"
 set spoolfile = "+INBOX"
 set imap_check_subscribed
 set hostname = gmail.com
-set mail_check = 300
+set mail_check = 1800
 set timeout = 300
-set imap_keepalive = 300
+# set imap_keepalive = 300
 set postponed = "+[GMail]/Drafts"
 set record = "+[GMail]/Sent Mail"
 set header_cache=~/.mutt/cache/headers
@@ -40,6 +40,9 @@ hdr_order Date From To Cc
 alternative_order text/plain text/html *
 auto_view text/html
 
+# My config
+set edit_headers = yes
+
 # Tuning
 set read_inc = 1000
 set time_inc = 1000
@@ -56,8 +59,13 @@ bind index pagedown     next-page
 bind index pageup   previous-page
 bind index \cd     next-page
 bind index \cu   previous-page
+bind index a group-reply
+bind index s create-alias
 bind pager gg top
 bind pager G bottom
 bind pager \cd     next-page
 bind pager \cu   previous-page
 bind pager u exit
+macro pager \cb <pipe-entry>'urlview'<enter> 'Follow links with urlview'
+bind pager a group-reply
+bind pager s create-alias
