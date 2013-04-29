@@ -67,5 +67,6 @@ bind pager \cd     next-page
 bind pager \cu   previous-page
 bind pager u exit
 macro pager \cb <pipe-entry>'urlview'<enter> 'Follow links with urlview'
+# Add ~/.urlview like: "COMMAND chromium %s"
 bind pager a group-reply
 bind pager s create-alias
