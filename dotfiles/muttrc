@@ -45,6 +45,8 @@ set read_inc = 1000
 set time_inc = 1000
 
 # Keybindings
+bind index i imap-fetch-mail
+# Vimin' it
 bind index gg first-entry
 bind index G last-entry
 bind index H current-top
@@ -54,5 +56,8 @@ bind index pagedown     next-page
 bind index pageup   previous-page
 bind index \cd     next-page
 bind index \cu   previous-page
+bind pager gg top
+bind pager G bottom
 bind pager \cd     next-page
 bind pager \cu   previous-page
+bind pager u exit
