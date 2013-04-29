@@ -1,0 +1,58 @@
+# A basic .muttrc for use with Gmail
+
+# Change the following six lines to match your Gmail account details
+set imap_user = "matthew.brett@gmail.com"
+# set imap_pass = "PASSWORD"
+set smtp_url = "smtp://matthew.brett@smtp.gmail.com:587/"
+# set smtp_pass = "PASSWORD"
+set from = "matthew.brett@gmail.com"
+set realname = "Matthew Brett"
+
+# Change the following line to a different editor you prefer.
+set editor = "vim"
+
+# Use maildir format
+set mbox_type=Maildir
+set maildir_header_cache_verify = no
+
+# Basic config, you can leave this as is
+set folder = "imaps://imap.gmail.com:993"
+set spoolfile = "+INBOX"
+set imap_check_subscribed
+set hostname = gmail.com
+set mail_check = 300
+set timeout = 300
+set imap_keepalive = 300
+set postponed = "+[GMail]/Drafts"
+set record = "+[GMail]/Sent Mail"
+set header_cache=~/.mutt/cache/headers
+set message_cachedir=~/.mutt/cache/bodies
+set certificate_file=~/.mutt/certificates
+set move = no
+set include
+set sort = 'threads'
+set sort_aux = 'reverse-last-date-received'
+set auto_tag = yes
+ignore "Authentication-Results:"
+ignore "DomainKey-Signature:"
+ignore "DKIM-Signature:"
+hdr_order Date From To Cc
+alternative_order text/plain text/html *
+auto_view text/html
+
+# Tuning
+set read_inc = 1000
+set time_inc = 1000
+
+# Keybindings
+bind index gg first-entry
+bind index G last-entry
+bind index H current-top
+bind index M current-middle
+bind index L current-bottom
+bind index pagedown     next-page
+bind index pageup   previous-page
+bind index \cd     next-page
+bind index \cu   previous-page
+bind pager \cd     next-page
+bind pager \cu   previous-page

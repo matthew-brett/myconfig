@@ -1,7 +1,7 @@
 # Makefile to do stuff with configurations
 
 DOTBACKUP = $(HOME)/.backup_dotfiles
-DOTFILES = bash_personal bash_utils gitconfig noserc gnomerc hgrc git-completion screenrc
+DOTFILES = bash_personal bash_utils gitconfig noserc gnomerc hgrc git-completion screenrc muttrc
 VENV_DIR = $(HOME)/.virtualenvs
 
 dotfiles: backup_directory bzrcfg vmailcfg
@@ -16,7 +16,7 @@ bzrcfg : dotfiles/bazaar.conf
 	cp dotfiles/bazaar.conf $(HOME)/.bazaar
 
 vmailcfg : dotfiles/vmailrc
-	- mv $(HOME)/.vmail/.vmailrc $(DOTBACKUP)/vmailrc
+	- mv $(HOME)/.vmail/default/.vmailrc $(DOTBACKUP)/vmailrc
 	- mkdir -p $(HOME)/.vmail/default
 	cp dotfiles/vmailrc $(HOME)/.vmail/default/.vmailrc
 
