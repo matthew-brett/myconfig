@@ -3,3 +3,4 @@
 username = Matthew Brett <matthew.brett@gmail.com>
 [extensions]
 pager =
+purge =
