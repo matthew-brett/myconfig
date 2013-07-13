@@ -18,7 +18,7 @@ def bt(cmd_str):
     stdout, stderr = proc.communicate()
     if proc.returncode != 0:
         raise RuntimeError('Error running %s\n%s' % (cmd_str, stderr))
-    return stdout
+    return stdout.decode('utf-8')
 
 branch_out = bt('git branch ' + ' '.join(sys.argv[1:]))
 branches = []
