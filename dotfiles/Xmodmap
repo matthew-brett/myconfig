@@ -8,3 +8,9 @@ clear Control
 clear Mod4
 add Control = Control_L Super_L Control_R
 add Mod4 = Super_R
+! Might want to add something like this for drag lock in .bashrc
+! http://blog.mbirgin.com/?c=page&ID=550&t=lockeddragsclicklockinubuntulinux
+! xinput --set-prop 11 308 1
+! where 11 is the id for the trackpad found with ``xinput list``, and 308 is
+! code for the Locked Drags property found with ``xinput list-props 11 | grep
+! Lock``
