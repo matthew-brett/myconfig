@@ -103,10 +103,12 @@ export WORKON_HOME=$HOME/.virtualenvs
 venv_wrap=`which virtualenvwrapper_lazy.sh`
 if [ -f "$venv_wrap" ]; then
     source $venv_wrap
+    alias lve='virtualenvwrapper_load'
 else
     venv_wrap=`which virtualenvwrapper.sh`
     if [ -f "$venv_wrap" ]; then
         source $venv_wrap
+        alias lve='echo "Already loaded"'
     fi
 fi
 
