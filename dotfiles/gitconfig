@@ -22,4 +22,12 @@
 [push]
     default = tracking
 [github]
-	user = matthew-brett
+    user = matthew-brett
+[url "git://github.com/"]
+    insteadOf = gh:
+[url "git@github.com:"]
+    pushInsteadOf = gh:
+[url "git://github.com/matthew-brett/"]
+    insteadOf = mygh:
+[url "git@github.com:matthew-brett/"]
+    pushInsteadOf = mygh:
