@@ -1,0 +1,5 @@
+#!/bin/sh
+# Poor man's pgrep from
+# http://soziotechnischemassnahmen.blogspot.com/2010/03/poor-mans-pgrep-on-mac-os-x.html
+pids=`ps -axo pid,command,args | grep -i "$@" | awk '{ print $1 }' | tr '\n' ','`
+ps -p $pids -o pid,args
