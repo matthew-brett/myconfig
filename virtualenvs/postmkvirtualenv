@@ -5,3 +5,4 @@ rm -rf build
 git clean -fxd
 python setup.py install
 popd
+pip install --ignore-installed nose
