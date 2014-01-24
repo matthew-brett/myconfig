@@ -19,7 +19,7 @@ def bt(cmd_str):
     return stdout
 
 try:
-    branchnme = sys.argv[1]
+    branchname = sys.argv[1]
 except IndexError:
     branchname = 'main-master'
 
