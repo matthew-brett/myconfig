@@ -62,18 +62,18 @@ function mk_pathspec {
     # Inputs:
     local prefixes=$1  # list of prefixes for path construction
     local ptypes=$2     # type of the path ('bin','lib', 'include', etc)
-    
+
     # Code begins
     local ppath=''
     local prefix
     local pt
-    
+
     for prefix in $prefixes
-    do
-	for pt in $ptypes
-	do
-	    ppath="$ppath:$prefix/$pt"
-	done
+        do
+        for pt in $ptypes
+        do
+            ppath="$ppath:$prefix/$pt"
+        done
     done
     echo $ppath
 }
@@ -81,14 +81,17 @@ function mk_pathspec {
 
 function mk_genpath {
     # Generic path spec generator (for unqualified, 32-bit only path specs)
-    
+
     # Inputs:
     local prefixes=$1  # list of prefixes for path construction
     local ptype=$2     # type of the path ('bin','lib', 'include', etc)
-    local postfix=${3:-" "}   # possible postfix to be appended after $ptype
+    local postfix=$3
+    if [[ "$postfix" ]]; then
+        postfix=${3:-" "} # possible postfix to be appended after $ptype
+    fi
 
     if [[ "$postfix" ]]; then
-	ptype="$ptype/$postfix"
+        ptype="$ptype/$postfix"
     fi
 
     echo $(mk_pathspec "$prefixes" "$ptype")
@@ -100,25 +103,27 @@ function mk_genpath64 {
     # system this works like mk_genpath, but on x86_64 architectures each path
     # component is produced both in $ptype and ${ptype}64 versions.  This is
     # useful for things like 'lib64:lib' combinations.
-    
+
     # Inputs:
     local prefixes=$1  # list of prefixes for path construction
     local ptype=$2     # type of the path ('bin','lib', 'include', etc)
-    local postfix=${3:-" "}   # possible postfix to be appended after $ptype
+    local postfix=$3
+    if [[ "$postfix" ]]; then
+        postfix=${3:-" "} # possible postfix to be appended after $ptype
+    fi
 
     local ptypeout
 
     if [[ $MACHINE == "x86_64" ]]; then  # 64-bit OS
-	if [[ "$postfix" ]]; then
-	    ptypeout="${ptype}64/$postfix $ptype/$postfix"
-	fi
+        if [[ "$postfix" ]]; then
+            ptypeout="${ptype}64/$postfix $ptype/$postfix"
+        fi
     else  # 32-bit OS
-	if [[ "$postfix" ]]; then
-	    ptypeout="$ptype/$postfix"
-	fi
-
+        if [[ "$postfix" ]]; then
+            ptypeout="$ptype/$postfix"
+        fi
     fi
-    
+
     echo $(mk_pathspec "$prefixes" "$ptypeout")
 }
 
@@ -162,7 +167,6 @@ function export_paths {
     #
     # Inputs:
     #   prefixes -- a list of prefixes to export all common paths for.
-    
     local prefixes=$1
 
     # PATH: binary execution
