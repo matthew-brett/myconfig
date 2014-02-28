@@ -35,6 +35,12 @@ alias cdve='pushd ${VIRTUAL_ENV}'
 # remote gvimming
 alias gvr='$GUI_EDITOR --remote-silent'
 
+# My own pip
+alias mypipi='pip install --install-option="--prefix=$HOME/usr/local"'
+
+# My own local install from source
+alias mypsi='python setup.py install --prefix=$HOME/usr/local'
+
 ############################################################################
 #
 # Load basic bash utilities (handy functions and constants)
@@ -66,10 +72,10 @@ export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
 export_paths "$pfx"
 
 # Make Python version specific ones, so it's easy to switch with a simple alias
-PYTHONPATH24=`mk_pythonpath "$pfx" 2.4`
 PYTHONPATH25=`mk_pythonpath "$pfx" 2.5`
 PYTHONPATH26=`mk_pythonpath "$pfx" 2.6`
-PYTHONPATH26=`mk_pythonpath "$pfx" 2.7`
+PYTHONPATH27=`mk_pythonpath "$pfx" 2.7`
+PYTHONPATH33=`mk_pythonpath "$pfx" 3.3`
 
 # Add the standard easy_install --user bin path
 export PATH=$PATH:$HOME/.local/bin
