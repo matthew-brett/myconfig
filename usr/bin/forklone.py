@@ -72,13 +72,10 @@ def main():
     w_proto = 'https-rw' if 'w' in args.https else 'ssh'
     r_proto = 'https-ro' if 'r' in args.https else 'git'
     fork_repo = gh_url(my_user, reponame, mode=w_proto)
-    if args.upstream_w:
-        up_remote = 'upstream-rw'
-        up_repo = gh_url(up_user, reponame, mode=w_proto)
-    else:
-        up_remote = 'upstream-ro'
-        up_repo = gh_url(up_user, reponame, mode=r_proto)
-    check_call('git clone {0}'.format(fork_repo), shell=True)
+    up_remote = 'origin'
+    upstream_proto = w_proto if args.upstream_w else r_proto
+    up_repo = gh_url(up_user, reponame, mode=upstream_proto)
+    check_call('git clone --origin={0} {1}'.format(my_user, fork_repo), shell=True)
     os.chdir(reponame)
     check_call('git remote add {0} {1} --fetch'.format(up_remote, up_repo),
                shell=True)
