@@ -1,0 +1,29 @@
+#!/usr/bin/env python
+# Adapt remote naming scheme to the one expected by hub
+# vim: ft=python
+
+import sys
+from sh import git
+
+def main():
+    user = git.config('--get', 'github.user').strip()
+    remotes = git.remote().split()
+    if not 'origin' in remotes:
+        sys.stderr.write('No origin remote\n')
+        exit(1)
+    url = git.config('--get', 'remote.origin.url')
+    if not user in url:
+        sys.stderr.write('origin does not point to {0}\n'.format(user))
+        exit(1)
+    for candidate in ('upstream-ro', 'upstream-rw'):
+        if candidate in remotes:
+            break
+    else:
+        sys.stderr.write('no "upstream-..." remote\n')
+        exit(1)
+    git.remote('rename', 'origin', user)
+    git.remote('rename', candidate, 'origin')
+
+
+if __name__ == '__main__':
+    main()
