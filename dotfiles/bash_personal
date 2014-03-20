@@ -41,6 +41,9 @@ alias mypipi='pip install --install-option="--prefix=$HOME/usr/local"'
 # My own local install from source
 alias mypsi='python setup.py install --prefix=$HOME/usr/local'
 
+# Build local wheels
+alias mywhy='pip wheel --wheel-dir=$HOME/wheelhouse'
+
 ############################################################################
 #
 # Load basic bash utilities (handy functions and constants)
