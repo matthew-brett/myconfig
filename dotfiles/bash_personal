@@ -44,6 +44,10 @@ alias mypsi='python setup.py install --prefix=$HOME/usr/local'
 # Build local wheels
 alias mywhy='pip wheel --wheel-dir=$HOME/wheelhouse'
 
+# Move my pip config out of the way
+alias unpip='mv $HOME/.pip/pip.conf $HOME/.pip/pip.conf.bak'
+alias repip='mv $HOME/.pip/pip.conf.bak $HOME/.pip/pip.conf'
+
 ############################################################################
 #
 # Load basic bash utilities (handy functions and constants)
@@ -120,6 +124,9 @@ else
         alias lve='echo "Already loaded"'
     fi
 fi
+
+# Python.org Python for OSX
+export POPY=/Library/Frameworks/Python.framework/Versions
 
 # pushd to directory for python package
 function pushdp {
