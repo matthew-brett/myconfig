@@ -8,9 +8,13 @@ from shutil import copyfile
 
 HERE = dirname(__file__)
 HOME = expanduser('~')
-DOTBACKUP = pjoin(HOME, '_backup_dotfiles')
-APPDATA = os.environ['APPDATA']
-BZRDIR = pjoin(APPDATA, 'bazaar', '2.0')
+if sys.platform == 'win32':
+    DOTBACKUP = pjoin(HOME, '_backup_dotfiles')
+    APPDATA = os.environ['APPDATA']
+    BZRDIR = pjoin(APPDATA, 'bazaar', '2.0')
+else:
+    DOTBACKUP = pjoin(HOME, '.backup_dotfiles')
+    BZRDIR = pjoin(HOME, '.bazaar')
 DOTFILE_MAP = [('gitconfig', '.gitconfig'),
                ('git-completion', '.git-completion'),
                ('noserc', 'nose.cfg'),
