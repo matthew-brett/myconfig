@@ -8,10 +8,12 @@ from shutil import copyfile
 
 HERE = dirname(__file__)
 HOME = expanduser('~')
+IO_ERRORS = (IOError, OSError)
 if sys.platform == 'win32':
     DOTBACKUP = pjoin(HOME, '_backup_dotfiles')
     APPDATA = os.environ['APPDATA']
     BZRDIR = pjoin(APPDATA, 'bazaar', '2.0')
+    IO_ERRORS += (WindowsError,)
 else:
     DOTBACKUP = pjoin(HOME, '.backup_dotfiles')
     BZRDIR = pjoin(HOME, '.bazaar')
@@ -27,7 +29,7 @@ DOTFILE_MAP = [('gitconfig', '.gitconfig'),
 def backupdir():
     try:
         os.mkdir(DOTBACKUP)
-    except (WindowsError, IOError, OSError):
+    except IO_ERRORS:
         pass
 
 
@@ -46,7 +48,7 @@ def ordinary_dotfiles():
 def bzrfile():
     try:
         os.makedirs(BZRDIR)
-    except (WindowsError, IOError, OSError):
+    except IO_ERRORS:
         pass
     bzrconf = 'bazaar.conf'
     in_full = pjoin('dotfiles', bzrconf)
