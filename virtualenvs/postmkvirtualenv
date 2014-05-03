@@ -1,8 +1,5 @@
 #!/bin/bash
 # This hook is run after a new virtualenv is activated.
-pushd ~/dev_trees/ipython
-rm -rf build
-git clean -fxd
-python setup.py install
-popd
+pip install -U pip
+pip install ipython
 pip install --ignore-installed nose
