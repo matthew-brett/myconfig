@@ -48,6 +48,32 @@ alias mywhy='pip wheel --wheel-dir=$HOME/wheelhouse'
 alias unpip='mv $HOME/.pip/pip.conf $HOME/.pip/pip.conf.bak'
 alias repip='mv $HOME/.pip/pip.conf.bak $HOME/.pip/pip.conf'
 
+# Move my nose config out of the way
+alias unnose='mv $HOME/.noserc $HOME/.noserc.bak'
+alias renose='mv $HOME/.noserc.bak $HOME/.noserc'
+
+# copy files to scipy_installers directory
+# Username has to be same as login username, or set in ssh config
+function cp_spi {
+    scp $@ nipy.bic.berkeley.edu:/home/scipy_installers
+}
+
+# pgrep, pkill if they are not available
+if [[ $UNAME == "Darwin" ]]; then  # OSX
+    if hash pgrep 2>/dev/null; then
+        function pgrep() {
+            ps aux | grep $1 | grep -v grep
+        }
+    fi
+    if hash pkill 2>/dev/null; then
+        function pkill() {
+            local pid
+            pid=$(ps ax | grep $1 | grep -v grep | awk '{ print $1 }')
+            kill -9 $pid
+            echo -n "Killed $1 (process $pid)"
+        }
+    fi
+fi
 ############################################################################
 #
 # Load basic bash utilities (handy functions and constants)
