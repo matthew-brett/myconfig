@@ -178,3 +178,6 @@ bind -m vi-insert "\C-k":kill-line
 #         # Activate gui popup for ssh passphrases
 #         eval `gnome-keyring-daemon -s`
 # esac
+
+# Bash completion for wheel files and egg files.
+complete -f -X '!*.@(whl|egg)' unzip zipinfo
