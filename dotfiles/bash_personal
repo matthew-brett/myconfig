@@ -48,10 +48,12 @@ alias mywhy='pip wheel --wheel-dir=$HOME/wheelhouse'
 
 # Move my pip config out of the way
 alias unpip='mv $HOME/.pip/pip.conf $HOME/.pip/pip.conf.bak'
+alias depip=unpip
 alias repip='mv $HOME/.pip/pip.conf.bak $HOME/.pip/pip.conf'
 
 # Move my nose config out of the way
 alias unnose='mv $HOME/.noserc $HOME/.noserc.bak'
+alias denose=unnose
 alias renose='mv $HOME/.noserc.bak $HOME/.noserc'
 
 # copy files to scipy_installers directory
