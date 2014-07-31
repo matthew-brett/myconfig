@@ -10,10 +10,12 @@
 export EDITOR=vim
 if [[ $UNAME != "Darwin" ]]; then  # not Mac
     export GUI_EDITOR=gvim
+    export VMAIL_VIM=vim
 else # is Mac
     #export DYLD_LIBRARY_PATaH=$LD_LIBRARY_PATH
     #export MACOSX_DEPLOYMENT_TARGET=10.6
     export GUI_EDITOR=mvim
+    export VMAIL_VIM=mvim
 fi
 # Pager should be defined for mercurial
 export PAGER=less
