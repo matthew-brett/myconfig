@@ -26,6 +26,8 @@ for branch in branch_out.split('\n'):
     branch = branch[2:].strip() # remove first two columns - blanks, asterisks
     if branch == '':
         continue
+    if branch.startswith('(detached from'):
+        continue
     if re.match('remotes/[a-zA-Z-_.0-9]+/HEAD -> ', branch):
         continue
     res = bt('git log -1 --pretty=format:"%Cgreen%ci %Cblue%cr%Creset"'
