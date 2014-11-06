@@ -1,0 +1,16 @@
+#!/bin/bash
+function reset_branch {
+    target_branch=$1
+    current_branch=`git rev-parse --abbrev-ref HEAD`
+    upstream=`git for-each-ref --format='%(upstream:short)' refs/heads/$target_branch`
+    if [ -z "$upstream" ]; then return; fi
+    git checkout $target_branch
+    if [ $? != 0 ]; then return; fi
+    git reset --hard $upstream
+    git checkout $current_branch
+}
+
+if [ -z "$1" ]; then target="main-master";
+else target=$1; fi
+
+reset_branch $target
