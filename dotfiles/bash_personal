@@ -56,6 +56,9 @@ alias unnose='mv $HOME/.noserc $HOME/.noserc.bak'
 alias denose=unnose
 alias renose='mv $HOME/.noserc.bak $HOME/.noserc'
 
+# Delete, make a temporary virtualenv
+alias testve='rmvirtualenv test; mkvirtualenv test'
+
 # copy files to scipy_installers directory
 # Username has to be same as login username, or set in ssh config
 function cp_spi {
@@ -184,4 +187,4 @@ bind -m vi-insert "\C-k":kill-line
 # esac
 
 # Bash completion for wheel files and egg files.
-complete -f -X '!*.@(whl|egg)' unzip zipinfo
+complete -f -X '!*.@(whl|egg|zip)' unzip zipinfo
