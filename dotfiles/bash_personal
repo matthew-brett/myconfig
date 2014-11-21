@@ -58,6 +58,10 @@ alias renose='mv $HOME/.noserc.bak $HOME/.noserc'
 
 # Delete, make a temporary virtualenv
 alias testve='rmvirtualenv test; mkvirtualenv test'
+alias test3ve='rmvirtualenv test3; mkvirtualenv --python=`which python3.4` test3'
+
+# Remove .orig files
+alias rmorig='find . -name "*.orig" -exec rm {} \;'
 
 # copy files to scipy_installers directory
 # Username has to be same as login username, or set in ssh config
