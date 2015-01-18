@@ -7,5 +7,6 @@ fi
 MACPYTHON_PY_PREFIX=/Library/Frameworks/Python.framework/Versions
 for suffix in 2.7 3.3 3.4; do
     pip=$MACPYTHON_PY_PREFIX/$suffix/bin/pip$suffix
-    $pip wheel -w $wheelhouse numpy scipy matplotlib ipython pandas cython statsmodels h5py scikit-learn sympy pyyaml ipdbplugin sphinx
+    $pip wheel -w $wheelhouse numpy scipy matplotlib ipython pandas cython \
+        statsmodels h5py scikit-learn sympy pyyaml ipdbplugin sphinx patsy
 done
