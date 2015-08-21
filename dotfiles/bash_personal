@@ -37,12 +37,6 @@ alias cdve='pushd ${VIRTUAL_ENV}'
 # remote gvimming
 alias gvr='$GUI_EDITOR --remote-silent'
 
-# My own pip
-alias mypipi='pip install --install-option="--prefix=$HOME/usr/local"'
-
-# My own local install from source
-alias mypsi='python setup.py install --prefix=$HOME/usr/local'
-
 # Build local wheels
 alias mywhy='pip wheel --wheel-dir=$HOME/wheelhouse'
 
@@ -115,14 +109,9 @@ export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
 # set and exported to the environment.
 export_paths "$pfx"
 
-# Make Python version specific ones, so it's easy to switch with a simple alias
-PYTHONPATH25=`mk_pythonpath "$pfx" 2.5`
-PYTHONPATH26=`mk_pythonpath "$pfx" 2.6`
-PYTHONPATH27=`mk_pythonpath "$pfx" 2.7`
-PYTHONPATH33=`mk_pythonpath "$pfx" 3.3`
-
-# Add the standard easy_install --user bin path
-export PATH=$PATH:$HOME/.local/bin
+# Add the standard --user executable path
+# Only expecting this to work on Unices (maybe including Cygwin)
+export PATH=$(python -c 'import site; print(site.USER_BASE + "/bin")'):$PATH
 
 # Search paths for LaTeX (Dont' forget the final colons.  The null entry `::'
 # denotes `default system directories' -- try finding that in the
@@ -139,9 +128,6 @@ export BSTINPUTS=.:$HOME/texmf/bstinputs::
 ############################################################################
 
 export MATLABPATH=$HOME/matlab:$HOME/matlab/m2html
-
-# default installation location variable for convenience
-export IPREFIX=$HOME/usr/local
 
 # git completion
 . $HOME/.git-completion
@@ -189,6 +175,3 @@ bind -m vi-insert "\C-k":kill-line
 #         # Activate gui popup for ssh passphrases
 #         eval `gnome-keyring-daemon -s`
 # esac
-
-# Bash completion for wheel files and egg files.
-complete -f -X '!*.@(whl|egg|zip)' unzip zipinfo
