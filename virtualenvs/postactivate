@@ -1,4 +1,7 @@
 #!/bin/bash
-# This hook is run before every virtualenv is activated.
-export OLD_PYTHONPATH=$PYTHONPATH
+# This hook is run after every virtualenv is activated.
+
+export VE_OLD_PYTHONPATH=$PYTHONPATH
 export PYTHONPATH=
+# Clear user Python binary path
+export PATH=$(echo $PATH | sed "s|${PY_USER_BIN}:\{0,1\}||")

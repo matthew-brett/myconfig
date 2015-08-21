@@ -111,7 +111,8 @@ export_paths "$pfx"
 
 # Add the standard --user executable path
 # Only expecting this to work on Unices (maybe including Cygwin)
-export PATH=$(python -c 'import site; print(site.USER_BASE + "/bin")'):$PATH
+export PY_USER_BIN=$(python -c 'import site; print(site.USER_BASE + "/bin")')
+export PATH=$PY_USER_BIN:$PATH
 
 # Search paths for LaTeX (Dont' forget the final colons.  The null entry `::'
 # denotes `default system directories' -- try finding that in the
