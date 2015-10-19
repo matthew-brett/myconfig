@@ -19,6 +19,7 @@ if len(sys.argv) != 2:
 username = sys.argv[1]
 
 out = subprocess.check_output("git remote show -n origin".split())
+out = out.decode('latin1')  # bytes to str on Python 3
 out = [l for l in out.split('\n') if "Fetch URL" in l][0]
 url = out.strip().split(' ')[-1]
 
