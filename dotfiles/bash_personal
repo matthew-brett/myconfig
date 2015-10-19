@@ -7,16 +7,13 @@
 
 ############################################################################
 # system specific settings
-export EDITOR=vim
-if [[ $UNAME != "Darwin" ]]; then  # not Mac
-    export GUI_EDITOR=gvim
-    export VMAIL_VIM=vim
-else # is Mac
-    #export DYLD_LIBRARY_PATaH=$LD_LIBRARY_PATH
-    #export MACOSX_DEPLOYMENT_TARGET=10.6
-    export GUI_EDITOR=mvim
-    export VMAIL_VIM=mvim
+UNAME=`uname`
+if [ "$UNAME" == "Linux" ]; then
+    . ~/.bash_linux
+elif [[ "$UNAME" == "Darwin" ]]; then
+    . ~/.bash_osx
 fi
+
 # Pager should be defined for mercurial
 export PAGER=less
 # Less needs to interpret 'raw' output apparently.  Otherwise ipython displays
@@ -27,9 +24,6 @@ export LESS=-R
 alias ll='ls -l'
 #alias la='ls -A'
 #alias l='ls -CF'
-
-# update for ubuntu
-alias apt-up='sudo apt-get update;sudo apt-get -y --force-yes dselect-upgrade'
 
 # for virtualenvs
 alias cdve='pushd ${VIRTUAL_ENV}'
@@ -63,51 +57,8 @@ function cp_spi {
     scp $@ nipy.bic.berkeley.edu:/home/scipy_installers
 }
 
-# pgrep, pkill if they are not available
-if [[ $UNAME == "Darwin" ]]; then  # OSX
-    if hash pgrep 2>/dev/null; then
-        function pgrep() {
-            ps aux | grep $1 | grep -v grep
-        }
-    fi
-    if hash pkill 2>/dev/null; then
-        function pkill() {
-            local pid
-            pid=$(ps ax | grep $1 | grep -v grep | awk '{ print $1 }')
-            kill -9 $pid
-            echo -n "Killed $1 (process $pid)"
-        }
-    fi
-fi
-############################################################################
-#
-# Load basic bash utilities (handy functions and constants)
-#
-. $HOME/.bash_utils
-
-############################################################################
-#
-# Configure paths, using the path generation functions in .bash_utils
-#
-# These are the prefixes I typically use as --prefix options for installation
-# of packages.  There's a method to the madness of having several of them, and
-# in this order.  The ones at the top end up first in the generated path specs,
-# so they take precedence.
-pfx="$pfx $HOME/tmp/junk"  # quick and dirty testing
-pfx="$pfx $HOME/tmp/local"  # temporary, stable testing
-pfx="$pfx $HOME/usr"  # codes *I* have written
-pfx="$pfx $HOME/usr/opt"  # I don't sync this across computers
-pfx="$pfx $HOME/usr/local"  # default prefix for third-party installs
-pfx="$pfx /local"  # used in some machines I work on
-pfx="$pfx /opt"  # vendor directory for commercial stuff
-
 # Initialize $PATH with sbin locations so I can find system tools
 export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
-
-# Now, set all common paths based on the prefix list just built.  The
-# export_paths function ensures that all commonly needed paths get correctly
-# set and exported to the environment.
-export_paths "$pfx"
 
 # Add the standard --user executable path
 # Only expecting this to work on Unices (maybe including Cygwin)
@@ -149,9 +100,6 @@ else
     fi
 fi
 
-# Python.org Python for OSX
-export POPY=/Library/Frameworks/Python.framework/Versions
-
 # pushd to directory for python package
 function pushdp {
    pushd `python -c "import os; import $1; print(os.path.dirname($1.__file__))"`
@@ -167,12 +115,3 @@ bind -m vi-insert "\C-n":next-history
 bind -m vi-insert "\C-a":beginning-of-line
 bind -m vi-insert "\C-e":end-of-line
 bind -m vi-insert "\C-k":kill-line
-
-# gnome keyring for - say - xfce4
-# Needs to go in .bashrc or .bash_profile
-# case "$-" in
-#    *i*)
-#         # Interactive prompt
-#         # Activate gui popup for ssh passphrases
-#         eval `gnome-keyring-daemon -s`
-# esac

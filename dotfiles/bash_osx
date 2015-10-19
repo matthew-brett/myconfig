@@ -1,0 +1,30 @@
+# -*- sh -*-  OSX-specific personal bash settings
+export GUI_EDITOR=gvim
+export VMAIL_VIM=vim
+
+# Use MacVim at command line
+alias vim='mvim -v'
+export EDITOR='mvim -v'
+
+# pgrep, pkill if they are not available
+if hash pgrep 2>/dev/null; then
+    function pgrep() {
+        ps aux | grep $1 | grep -v grep
+    }
+fi
+if hash pkill 2>/dev/null; then
+    function pkill() {
+        local pid
+        pid=$(ps ax | grep $1 | grep -v grep | awk '{ print $1 }')
+        kill -9 $pid
+        echo -n "Killed $1 (process $pid)"
+    }
+fi
+
+# Python.org Python for OSX
+export POPY=/Library/Frameworks/Python.framework/Versions
+
+# bash completion
+if [ -f $(brew --prefix)/etc/bash_completion ]; then
+    . $(brew --prefix)/etc/bash_completion
+fi

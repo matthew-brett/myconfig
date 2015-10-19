@@ -1,0 +1,15 @@
+# -*- sh -*-  Linux-specific personal bash settings
+export GUI_EDITOR=gvim
+export VMAIL_VIM=vim
+
+# update for ubuntu
+alias apt-up='sudo apt-get update;sudo apt-get -y --force-yes dselect-upgrade'
+
+# gnome keyring for - say - xfce4
+# Needs to go in .bashrc or .bash_profile
+# case "$-" in
+#    *i*)
+#         # Interactive prompt
+#         # Activate gui popup for ssh passphrases
+#         eval `gnome-keyring-daemon -s`
+# esac
