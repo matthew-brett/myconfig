@@ -46,7 +46,7 @@ alias renose='mv $HOME/.noserc.bak $HOME/.noserc'
 
 # Delete, make a temporary virtualenv
 alias testve='rmvirtualenv test; mkvirtualenv test'
-alias test3ve='rmvirtualenv test3; mkvirtualenv --python=`which python3.4` test3'
+alias test3ve='rmvirtualenv test3; mkvirtualenv --python=`which python3.5` test3'
 
 # Remove .orig files
 alias rmorig='find . -name "*.orig" -exec rm {} \;'
@@ -57,13 +57,17 @@ function cp_spi {
     scp $@ nipy.bic.berkeley.edu:/home/scipy_installers
 }
 
+# Add usr bins to PATH
+PATH=$HOME/usr/bin:$HOME/usr/local/sbin:$PATH
+
 # Initialize $PATH with sbin locations so I can find system tools
-export PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
+PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
+
 
 # Add the standard --user executable path
 # Only expecting this to work on Unices (maybe including Cygwin)
 export PY_USER_BIN=$(python -c 'import site; print(site.USER_BASE + "/bin")')
-export PATH=$PY_USER_BIN:$PATH
+PATH=$PY_USER_BIN:$PATH
 
 # Search paths for LaTeX (Dont' forget the final colons.  The null entry `::'
 # denotes `default system directories' -- try finding that in the
@@ -115,3 +119,6 @@ bind -m vi-insert "\C-n":next-history
 bind -m vi-insert "\C-a":beginning-of-line
 bind -m vi-insert "\C-e":end-of-line
 bind -m vi-insert "\C-k":kill-line
+
+# Always export PATH
+export PATH
