@@ -25,6 +25,7 @@ DOTFILE_MAP = [('gitconfig', '.gitconfig'),
                ('bash_linux', '.bash_linux'),
                ('hgrc', '.hgrc'),
                ('screenrc', '.screenrc'),
+               ('inputrc', '.inputrc'),
                ('gitglobalignore', '.gitglobalignore'),
                ('bash_keychain_lite', '.bash_keychain_lite')]
 
