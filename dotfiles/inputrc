@@ -1,1 +1,13 @@
+# From: https://wiki.archlinux.org/index.php/Readline
+$include /etc/inputrc
 set editing-mode vi
+$if mode=vi
+set keymap vi-command
+# these are for vi-command mode
+"\C-a": beginning-of-line
+"\C-e": end-of-line
+set keymap vi-insert
+# these are for vi-insert mode
+"\C-a": beginning-of-line
+"\C-e": end-of-line
+$endif
