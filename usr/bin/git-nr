@@ -3,7 +3,7 @@
 
 git nr username
 
-Adds remote "username" as git@github.com:username/current_repo.git
+Adds remote "username" as https://github.com/username/current_repo.git
 
 From: https://gist.github.com/stefanv/e9135cc899deda1141b0#file-git-nr
 """
@@ -25,7 +25,7 @@ url = out.strip().split(' ')[-1]
 
 repo = url.split('/')[-1]
 
-remote = "git@github.com:%s/%s" % (username, repo)
+remote = "https://github.com/%s/%s" % (username, repo)
 
 print("Adding remote %s" % remote)
 subprocess.check_output(('git remote add %s %s' % (username, remote)).split())
