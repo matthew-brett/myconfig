@@ -37,6 +37,9 @@ alias mywhy='pip wheel --wheel-dir=$HOME/wheelhouse'
 # Pip user install
 alias pipu="pip install --user"
 
+# Show numpy version
+alias npv="python -c 'import numpy; print(numpy.__version__)'"
+
 # Move my pip config out of the way
 alias unpip='mv $HOME/.pip/pip.conf $HOME/.pip/pip.conf.bak'
 alias depip=unpip
