@@ -34,6 +34,9 @@ alias gvr='$GUI_EDITOR --remote-silent'
 # Build local wheels
 alias mywhy='pip wheel --wheel-dir=$HOME/wheelhouse'
 
+# Pip user install
+alias pipu="pip install --user"
+
 # Move my pip config out of the way
 alias unpip='mv $HOME/.pip/pip.conf $HOME/.pip/pip.conf.bak'
 alias depip=unpip
@@ -68,6 +71,12 @@ PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
 # Only expecting this to work on Unices (maybe including Cygwin)
 export PY_USER_BIN=$(python -c 'import site; print(site.USER_BASE + "/bin")')
 PATH=$PY_USER_BIN:$PATH
+
+# Add standard --user-install gem path
+gem_user_path=`gem environment paths | awk -F ":" '{print $1}'`
+if [ -n "$gem_user_path" ]; then
+    PATH=${gem_user_path}/bin:$PATH
+fi
 
 # Search paths for LaTeX (Dont' forget the final colons.  The null entry `::'
 # denotes `default system directories' -- try finding that in the
