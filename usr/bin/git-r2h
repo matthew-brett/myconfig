@@ -1,0 +1,15 @@
+#!/bin/bash
+# Convert an ssh remote to an https remote
+remote=$1
+if [ -z "$remote" ]; then remote="origin"; fi
+remote_url=$(git remote -v | grep $remote | grep "fetch" | awk '{print $2}')
+if [ -z "$remote_url" ]; then echo "Cannot find remote $remote"; return 1; fi
+if [ "${remote_url:0:5}" == "https" ]; then return; fi
+if [ "${remote_url:0:4}" == "git:" ]; then
+    new_url="https:${remote_url:4}"
+elif [ "${remote_url:0:4}" == "git@" ]; then
+    root_url=$(echo $remote_url |cut -d':' -f1)
+    org_repo=$(echo $remote_url |cut -d':' -f2)
+    new_url="https://${root_url:4}/$org_repo"
+fi
+git remote set-url $remote $new_url
