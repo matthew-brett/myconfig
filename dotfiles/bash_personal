@@ -134,3 +134,12 @@ bind -m vi-insert "\C-k":kill-line
 
 # Always export PATH
 export PATH
+
+# local::lib setup
+# See: http://search.cpan.org/~haarg/local-lib-2.000019/lib/local/lib.pm
+# Install by downloading and unpacking archive from that link and
+#     perl Makefile.PL --bootstrap
+#
+# Use with: e.g.:
+#   perl -MCPAN -Mlocal::lib -e 'CPAN::install(Math::Matrix)'
+eval "$(perl -I$HOME/perl5/lib/perl5 -Mlocal::lib)"
