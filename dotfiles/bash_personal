@@ -79,10 +79,12 @@ export PY_USER_BIN=$(python -c 'import site; print(site.USER_BASE + "/bin")')
 PATH=$PY_USER_BIN:$PATH
 
 # Add standard --user-install gem path
-gem_user_path=`gem environment paths | awk -F ":" '{print $1}'`
-if [ -n "$gem_user_path" ]; then
-    PATH=${gem_user_path}/bin:$PATH
-fi
+[ gem >& /dev/null ] && {
+    gem_user_path=`gem environment paths | awk -F ":" '{print $1}'`
+    if [ -n "$gem_user_path" ]; then
+        PATH=${gem_user_path}/bin:$PATH
+    fi
+    }
 
 # Search paths for LaTeX (Dont' forget the final colons.  The null entry `::'
 # denotes `default system directories' -- try finding that in the
@@ -145,4 +147,7 @@ export PATH
 #
 # Use with: e.g.:
 #   perl -MCPAN -Mlocal::lib -e 'CPAN::install(Math::Matrix)'
-eval "$(perl -I$HOME/perl5/lib/perl5 -Mlocal::lib)"
+perl_local_lib="perl -I$HOME/perl5/lib/perl5 -Mlocal::lib"
+[ "$perl_local_lib" ] && {
+    eval "$($perl_local_lib)"
+    }
