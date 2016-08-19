@@ -3,6 +3,7 @@
 [user]
     name = Matthew Brett
     email = matthew.brett@gmail.com
+	signingkey = F6401040
 [alias]
     st = status
     stat = status
@@ -31,3 +32,5 @@
     insteadOf = mygh:
 [url "git@github.com:matthew-brett/"]
     pushInsteadOf = mygh:
+[commit]
+	gpgsign = true
