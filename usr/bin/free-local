@@ -1,0 +1,3 @@
+#!/bin/bash
+rm ~/.freerdp/known_hosts
+xfreerdp -u mb312 --plugin cliprdr -g 1900x1050 --ignore-certificate $@ localhost
