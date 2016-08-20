@@ -14,6 +14,10 @@ elif [[ "$UNAME" == "Darwin" ]]; then
     . ~/.bash_osx
 fi
 
+# Default Python, pip executables
+PYTHON_EXE=${PYTHON_EXE:-python}
+PIP_EXE=${PIP_EXE:-pip}
+
 # Pager should be defined for mercurial
 export PAGER=less
 # Less needs to interpret 'raw' output apparently.  Otherwise ipython displays
@@ -32,21 +36,18 @@ alias cdve='pushd ${VIRTUAL_ENV}'
 alias gvr='$GUI_EDITOR --remote-silent'
 
 # Build local wheels
-alias mywhy='pip wheel --wheel-dir=$HOME/wheelhouse'
+alias mywhy='$PIP_EXE wheel --wheel-dir=$HOME/wheelhouse'
 
 # Pip user install
-alias pipu="pip install --user"
+alias pipu="$PIP_EXE install --user"
 
 # Show numpy version
-alias npv="python -c 'import numpy; print(numpy.__version__)'"
+alias npv="$PYTHON_EXE -c 'import numpy; print(numpy.__version__)'"
 
 # Move my pip config out of the way
 alias unpip='mv $HOME/.pip/pip.conf $HOME/.pip/pip.conf.bak'
 alias depip=unpip
 alias repip='mv $HOME/.pip/pip.conf.bak $HOME/.pip/pip.conf'
-
-# Pip user install
-alias pipu="pip install --user"
 
 # Move my nose config out of the way
 alias unnose='mv $HOME/.noserc $HOME/.noserc.bak'
@@ -75,7 +76,7 @@ PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
 
 # Add the standard --user executable path
 # Only expecting this to work on Unices (maybe including Cygwin)
-export PY_USER_BIN=$(python -c 'import site; print(site.USER_BASE + "/bin")')
+export PY_USER_BIN=$($PYTHON_EXE -c 'import site; print(site.USER_BASE + "/bin")')
 PATH=$PY_USER_BIN:$PATH
 
 # Add standard --user-install gem path
@@ -123,7 +124,7 @@ fi
 
 # pushd to directory for python package
 function pushdp {
-   pushd `python -c "import os; import $1; print(os.path.dirname($1.__file__))"`
+   pushd `$PYTHON_EXE -c "import os; import $1; print(os.path.dirname($1.__file__))"`
 }
 
 # vi bash command line editing
