@@ -55,7 +55,7 @@ alias denose=unnose
 alias renose='mv $HOME/.noserc.bak $HOME/.noserc'
 
 # Delete, make a temporary virtualenv
-alias testve='rmvirtualenv test; mkvirtualenv test'
+alias testve='rmvirtualenv test; mkvirtualenv --python=`which python2.7` test'
 alias test3ve='rmvirtualenv test3; mkvirtualenv --python=`which python3.5` test3'
 
 # Remove .orig files

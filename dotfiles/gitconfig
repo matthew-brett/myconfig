@@ -1,17 +1,20 @@
 [core]
     excludesfile = ~/.gitglobalignore
+    editor = vim
 [user]
     name = Matthew Brett
     email = matthew.brett@gmail.com
-	signingkey = F6401040
+    signingkey = F6401040
 [alias]
     st = status
     stat = status
     co = checkout
     lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)[%an]%Creset' --abbrev-commit --date=relative
+    slog = log --oneline --graph
 [color]
     diff = auto
     status = true
+    ui = auto
 [branch]
     autosetupmerge = true
 [merge]
@@ -33,4 +36,4 @@
 [url "git@github.com:matthew-brett/"]
     pushInsteadOf = mygh:
 [commit]
-	gpgsign = true
+    gpgsign = true

@@ -9,22 +9,28 @@ Adds a new branch "pr/NR"
 """
 from __future__ import print_function
 
-import subprocess
+from subprocess import check_output
 import sys
 
 if len(sys.argv) < 2:
     print("Usage: git-pr NR")
     print("Usage: git-pr NR0 NR1 NR2 NR3")
     print("Usage: git-pr NR0 NR1 NR2 -args -to -git-fetch")
+    print("Usage: git-pr NR0 NR1 NR2 -co -args -to -git-fetch")
     sys.exit(-1)
 
 opts = [arg for arg in sys.argv[1:] if arg.startswith('-')]
 nrs = [int(arg) for arg in sys.argv[1:] if not arg.startswith('-')]
+co = False
 
 for i, nr in enumerate(nrs):
+    if '-co' in opts:
+        opts.remove('-co')
+        co = True
     print("Fetching PR #{0} into branch 'pr/{0}'".format(nr))
     cmd = "git fetch origin pull/{0}/head:pr/{0}".format(nr)
-    out = subprocess.check_output(cmd.split() + opts)
-
+    out = check_output(cmd.split() + opts)
     if i != len(nrs) - 1 and not out.endswith('\n'):
         print()
+    if co:
+        check_output(['git', 'checkout', 'pr/{}'.format(nr)])
