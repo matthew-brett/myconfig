@@ -35,5 +35,5 @@
     insteadOf = mygh:
 [url "git@github.com:matthew-brett/"]
     pushInsteadOf = mygh:
-[commit]
-    gpgsign = true
+[credential]
+	helper = cache --timeout=3600
