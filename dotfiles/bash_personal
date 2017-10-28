@@ -81,7 +81,7 @@ export PY_USER_BIN=$($PYTHON_EXE -c 'import site; print(site.USER_BASE + "/bin")
 PATH=$PY_USER_BIN:$PATH
 
 # Add standard --user-install gem path
-[ gem >& /dev/null ] && {
+command -v gem >& /dev/null && {
     gem_user_path=`gem environment paths | awk -F ":" '{print $1}'`
     if [ -n "$gem_user_path" ]; then
         PATH=${gem_user_path}/bin:$PATH
@@ -111,12 +111,12 @@ PS1='[\u@\h ${PWD/$HOME/~}$(__git_ps1 " (%s)")]\$ '
 # install virtualenvwrapper functions if available
 export WORKON_HOME=$HOME/.virtualenvs
 # Prefer lazy version
-venv_wrap=$(which virtualenvwrapper_lazy.sh 2> /dev/null)
+venv_wrap=$(command -v virtualenvwrapper_lazy.sh 2>&1 /dev/null)
 if [ -n "$venv_wrap" ] &&  [ -f "$venv_wrap" ]; then
     source $venv_wrap
     alias lve='virtualenvwrapper_load'
 else
-    venv_wrap=$(which virtualenvwrapper.sh 2> /dev/null)
+    venv_wrap=$(command -v virtualenvwrapper.sh 2>&1 /dev/null)
     if [ -n "$venv_wrap" ] &&  [ -f "$venv_wrap" ]; then
         source $venv_wrap
         alias lve='echo "Already loaded"'
