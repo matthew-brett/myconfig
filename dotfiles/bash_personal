@@ -111,13 +111,13 @@ PS1='[\u@\h ${PWD/$HOME/~}$(__git_ps1 " (%s)")]\$ '
 # install virtualenvwrapper functions if available
 export WORKON_HOME=$HOME/.virtualenvs
 # Prefer lazy version
-venv_wrap=`which virtualenvwrapper_lazy.sh`
-if [ -f "$venv_wrap" ]; then
+venv_wrap=$(which virtualenvwrapper_lazy.sh 2> /dev/null)
+if [ -n "$venv_wrap" ] &&  [ -f "$venv_wrap" ]; then
     source $venv_wrap
     alias lve='virtualenvwrapper_load'
 else
-    venv_wrap=`which virtualenvwrapper.sh`
-    if [ -f "$venv_wrap" ]; then
+    venv_wrap=$(which virtualenvwrapper.sh 2> /dev/null)
+    if [ -n "$venv_wrap" ] &&  [ -f "$venv_wrap" ]; then
         source $venv_wrap
         alias lve='echo "Already loaded"'
     fi
