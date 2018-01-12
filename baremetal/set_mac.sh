@@ -84,3 +84,6 @@ ipython profile create
 cat >> ~/.ipython/profile_default/ipython_config.py << EOF
 c.TerminalInteractiveShell.editing_mode = 'vi'
 EOF
+
+# Printing
+# https://universityofbirmingham.service-now.com/itgateway/kb_view.do?sysparm_article=KB13216
