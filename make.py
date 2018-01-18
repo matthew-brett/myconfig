@@ -27,7 +27,8 @@ DOTFILE_MAP = [('gitconfig', '.gitconfig'),
                ('screenrc', '.screenrc'),
                ('inputrc', '.inputrc'),
                ('gitglobalignore', '.gitglobalignore'),
-               ('bash_keychain_lite', '.bash_keychain_lite')]
+               ('bash_keychain_lite', '.bash_keychain_lite'),
+               ('Rprofile', '.Rprofile')]
 
 def backupdir():
     try:

@@ -3,7 +3,7 @@
 DOTBACKUP = $(HOME)/.backup_dotfiles
 DOTFILES = bash_personal bash_osx bash_linux gitconfig noserc gnomerc hgrc \
 		   git-completion screenrc muttrc gitglobalignore bash_osx bash_linux \
-		   inputrc
+		   inputrc Rprofile
 VENV_DIR = $(HOME)/.virtualenvs
 
 dotfiles: backup_directory bzrcfg vmailcfg
