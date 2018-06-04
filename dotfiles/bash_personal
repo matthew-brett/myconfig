@@ -1,6 +1,6 @@
 # -*- sh -*-  Personal bash settings
 # vim: ft=sh
-# Put this at the end of your .bashrc or .bash_profile file
+# Put this at the _end_ of your .bashrc or .bash_profile file
 # # Source personal definitions
 # if [ -f ~/.bash_personal ]; then
 #         . ~/.bash_personal
@@ -18,6 +18,14 @@ fi
 # Default Python, pip executables
 PYTHON_EXE=${PYTHON_EXE:-python}
 PIP_EXE=${PIP_EXE:-pip}
+
+# Find Python user bin directory.
+# Only expecting this to work on Unices (maybe including Cygwin)
+export PY_USER_BIN=$($PYTHON_EXE -c 'import site; print(site.USER_BASE + "/bin")')
+
+# Link chosen Python, pip as user Python, pip
+ln -sf $(which $PYTHON_EXE) ${PY_USER_BIN}/python
+ln -sf $(which $PIP_EXE) ${PY_USER_BIN}/pip
 
 # Pager should be defined for mercurial
 export PAGER=less
@@ -74,10 +82,7 @@ PATH=$HOME/usr/bin:$HOME/usr/local/sbin:$PATH
 # Initialize $PATH with sbin locations so I can find system tools
 PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
 
-
-# Add the standard --user executable path
-# Only expecting this to work on Unices (maybe including Cygwin)
-export PY_USER_BIN=$($PYTHON_EXE -c 'import site; print(site.USER_BASE + "/bin")')
+# Add the standard Python --user executable path
 PATH=$PY_USER_BIN:$PATH
 
 # Add standard --user-install gem path
