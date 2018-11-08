@@ -23,9 +23,12 @@ PIP_EXE=${PIP_EXE:-pip}
 # Only expecting this to work on Unices (maybe including Cygwin)
 export PY_USER_BIN=$($PYTHON_EXE -c 'import site; print(site.USER_BASE + "/bin")')
 
-# Link chosen Python, pip as user Python, pip
-ln -sf $(which $PYTHON_EXE) ${PY_USER_BIN}/python
-ln -sf $(which $PIP_EXE) ${PY_USER_BIN}/pip
+if [ -n "$PY_USER_BIN" ]; then
+    # Link chosen Python, pip as user Python, pip
+    mkdir -p ${PY_USER_BIN}
+    ln -sf $(which $PYTHON_EXE) ${PY_USER_BIN}/python
+    ln -sf $(which $PIP_EXE) ${PY_USER_BIN}/pip
+fi
 
 # Pager should be defined for mercurial
 export PAGER=less
