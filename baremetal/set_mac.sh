@@ -1,13 +1,14 @@
 # Set up a Mac from bare OS install
+my_user="my_user"
 
 # Make some useful directories
 cd
 mkdir -p .ssh usr/bin dev_trees tmp
 
 # Set up ssh
-scp mb312@tom.bic.berkeley.edu:.ssh/id_rsa* .ssh
+scp ${my_user}@tom.bic.berkeley.edu:.ssh/id_rsa* .ssh
 ssh-add
-scp mb312@tom.bic.berkeley.edu:.ssh/config .ssh
+scp ${my_user}@tom.bic.berkeley.edu:.ssh/config .ssh
 
 # Check that xcode command line tools are installed
 xcode-select --install
@@ -65,10 +66,13 @@ brew install pandoc
 brew install pandoc-citeproc
 brew tap caskroom/cask
 brew cask install mactex
-brew install cabal
+brew install cabal-install
 brew install gnupg
 brew install pinentry-mac
-scp -r mb312@tom.bic.berkeley.edu:.gnupg .
+scp -r ${my_user}@tom.bic.berkeley.edu:.gnupg .
+cat >> ~/.gnupg/gpg-agent.conf << EOF
+pinentry-program /usr/local/bin/pinentry-curses
+EOF
 
 # Misc
 ln -s "/System/Library/Automator/Combine PDF Pages.action/Contents/Resources/join.py" ~/usr/bin/pdfconcat
