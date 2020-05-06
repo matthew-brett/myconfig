@@ -105,6 +105,7 @@ EOF
 # to copy, link, e.g
 mkdir -p .ipython .jupyter
 ln -s ~/dev_trees/myconfig/others/.jupyter/jupyter_notebook_config.sh ~/.jupyter
+ln -s ~/dev_trees/myconfig/others/.jupyter/jupyter_console_config.sh ~/.jupyter
 ln -s ~/dev_trees/myconfig/others/.jupyter/custom ~/.jupyter
 
 # Consider
