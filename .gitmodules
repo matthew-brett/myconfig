@@ -76,3 +76,6 @@
 [submodule "vim/bundle/tlib"]
 	path = vim/bundle/tlib
 	url = https://github.com/tomtom/tlib_vim
+[submodule "vim/bundle/vim-cython"]
+	path = vim/bundle/vim-cython
+	url = https://github.com/anntzer/vim-cython
