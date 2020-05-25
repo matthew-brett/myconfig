@@ -1,47 +1,20 @@
-# Compiler stuff
-export CC=clang
-export CXX=clang++
-export FFLAGS=-ff2c
+# Silence warning about change in default shell
+# https://support.apple.com/en-gb/HT208050
+export BASH_SILENCE_DEPRECATION_WARNING=1
+# brew install bash-completion
+[[ -r "/usr/local/etc/profile.d/bash_completion.sh" ]] && \
+    . "/usr/local/etc/profile.d/bash_completion.sh"
 
-# path for Haskell local installs
-PATH="$PATH:$HOME/.cabal/bin"
+# Default Python
+PYTHON_EXE=python3
+PIP_EXE=pip3
 
-# bash completion
-if [ -f $(brew --prefix)/etc/bash_completion ]; then
-    . $(brew --prefix)/etc/bash_completion
-fi
+# Put homebrew ruby first on PATH
+export PATH=/usr/local/opt/ruby/bin:$PATH
+# And user Gem path:
+export PATH=$HOME/.gem/ruby/2.7.0/bin:$PATH
 
 # Source personal definitions
 if [ -f ~/.bash_personal ]; then
     . ~/.bash_personal
 fi
-
-# Use MacVim vim at command line
-alias vim='mvim -v'
-export EDITOR='mvim -v'
-
-# Path for homebrew ruby
-PATH=/usr/local/opt/ruby/bin:$PATH
-
-# Directory for vagrant downloads etc
-# Set to my external drive
-# http://docs.vagrantup.com/v2/other/environmental-variables.html
-export VAGRANT_HOME=/Volumes/diosx/.vagrant.d
-
-# FSL Setup
-FSLDIR=/opt/fsl/fsl
-PATH=${FSLDIR}/bin:${PATH}
-export FSLDIR PATH
-. ${FSLDIR}/etc/fslconf/fsl.sh
-
-# Setting PATH for Python 2.7
-PATH="/Library/Frameworks/Python.framework/Versions/2.7/bin:${PATH}"
-
-# Suggested PERL setup
-PERL_MB_OPT="--install_base \"/Users/mb312/perl5\""; export PERL_MB_OPT;
-PERL_MM_OPT="INSTALL_BASE=/Users/mb312/perl5"; export PERL_MM_OPT;
-export PERL5LIB=$HOME/perl5/lib/perl5
-PATH=$PATH:$HOME/perl5/bin
-
-# Always export PATH
-export PATH
