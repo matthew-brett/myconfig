@@ -196,8 +196,9 @@ nmap <silent> <leader>rmd :set ft=rmd<CR>
 " =================================
 "  configure plugins
 " =================================
-" Set yankring history file
+" Yankring
 let g:yankring_history_file = '.yankring_history'
+let g:yankring_min_element_length = 2
 " Supertab
 let g:SuperTabDefaultCompletionType = "context"
 let g:SuperTabContextDefaultCompletionType="<c-x><c-o>"
