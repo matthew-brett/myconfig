@@ -1,0 +1,11 @@
+#!/bin/bash
+mp=$1
+if [ -z "$mp" ]; then
+    echo Need mount point to unmount
+    exit 1
+fi
+pat="^/Volumes/.*"
+if [[ ! $mp =~ $pat ]]; then
+    mp="/Volumes/$mp"
+fi
+diskutil unmount "$mp"
