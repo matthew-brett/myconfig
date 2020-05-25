@@ -1,0 +1,20 @@
+--- packages/language-r/snippets/language-r.cson.old	2020-04-25 13:10:45.000000000 +0100
++++ packages/language-r/snippets/language-r.cson	2020-04-25 13:11:05.000000000 +0100
+@@ -14,7 +14,7 @@
+   'Cummulative max':
+     'prefix': 'cumi'
+     'body': 'cummax(${1:x})'
+-  'Cummulative max':
++  'Cummulative max2':
+     'prefix': 'cuma'
+     'body': 'cummin(${1:x})'
+   'Data Frame':
+@@ -47,7 +47,7 @@
+   'Grep':
+     'prefix': 'grep'
+     'body': 'grep(${1:pattern}, ${2:x}, ${3:ignore.case = ${4:FALSE}}, ${5:perl = ${6:FALSE}})'
+-  'Grep':
++  'Grep2':
+     'prefix': 'grep'
+     'body': 'grep(${1:pattern}, ${2:x}, ${3:ignore.case = ${4:FALSE}}, ${5:perl = ${6:FALSE}}, ${7:value = ${8:FALSE}}, ${9:fixed = ${10:TRUE}})'
+   'Grep logical':

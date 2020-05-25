@@ -1,0 +1,117 @@
+# Your snippets
+#
+# Atom snippets allow you to enter a simple prefix in the editor and hit tab to
+# expand the prefix into a larger code block with templated values.
+#
+# You can create a new snippet in this file by typing "snip" and then hitting
+# tab.
+#
+# An example CoffeeScript snippet to expand log to console.log:
+#
+# '.source.coffee':
+#   'Console log':
+#     'prefix': 'log'
+#     'body': 'console.log $1'
+#
+# Each scope (e.g. '.source.coffee' above) can only be declared once.
+#
+# This file uses CoffeeScript Object Notation (CSON).
+# If you are unfamiliar with CSON, you can read more about it in the
+# Atom Flight Manual:
+# http://flight-manual.atom.io/using-atom/sections/basic-customization/#_cson
+
+ '.text.md':
+   'Python chunk':
+     'prefix': 'pk'
+     'body': """
+     ```{python}
+     $1
+     ```
+     """
+
+   'Python error chunk':
+     'prefix': 'pke'
+     'body': """
+     ```{python tags=c("raises-exception")}
+     $1
+     ```
+     """
+
+   'R chunk':
+     'prefix': 'rk'
+     'body': """
+     ```{r}
+     $1
+     ```
+     """
+
+   'Site baseurl':
+     'prefix': 'sbu'
+     'body': '({{ site.baseurl }}/$1)'
+
+   'OK initial cell':
+     'prefix': 'oki'
+     'body': """
+     ```{python}
+     # Load the OKpy test library and tests.
+     from client.api.notebook import Notebook
+     ok = Notebook('$1.ok')
+     $1
+     ```
+     """
+
+   'OK test chunk':
+     'prefix': 'okt'
+     'body': """
+     ```{python}
+     _ = ok.grade('$1')
+     ```
+     """
+
+   'OK exercise end section':
+     'prefix': 'okend'
+     'body': """
+     ## Done
+
+     You're finished with the assignment!  Be sure to...
+
+     - **run all the tests** (the next cell has a shortcut for that),
+     - **Save and Checkpoint** from the "File" menu.
+     - Finally, **restart** the kernel for this notebook, and **run all the cells**,
+       to check that the notebook still works without errors.  Use the
+       "Kernel" menu, and choose "Restart and run all".  If you find any
+       problems, go back and fix them, save the notebook, and restart / run
+       all again, before submitting.  When you do this, you make sure that
+       we, your humble markers, will be able to mark your notebook.
+
+     ```{python}
+     # For your convenience, you can run this cell to run all the tests at once!
+     import os
+     _ = [ok.grade(q[:-3]) for q in os.listdir("tests") if q.startswith('q')]
+     ```
+     """
+
+   'Jupytext header':
+     'prefix': 'jpt'
+     'body': """
+     ---
+     jupyter:
+       jupytext:
+         split_at_heading: true
+         text_representation:
+           extension: .Rmd
+           format_name: rmarkdown
+       kernelspec:
+         display_name: Python 3
+         language: python
+         name: python3
+     ---
+     """
+
+   'Comment':
+     'prefix': '\\\\'
+     'body': """
+     <!---
+     $1
+     -->
+     """

@@ -1,0 +1,21 @@
+{
+  "Cell": {
+    "cm_config": {
+      "lineNumbers": false
+    }
+  },
+  "Notebook": {
+    "Header": false,
+    "Toolbar": false
+  },
+  "keys": {
+    "command": {
+      "bind": {
+        "cmd-shift-e": "jupyter-notebook:restart-kernel-and-run-all-cells",
+        "f,e": "jupyter-notebook:restart-kernel-and-run-all-cells",
+        "ctrl-f,h": "jupyter-notebook:close-and-halt",
+        "ctrl-f,r": "jupyter-notebook:restart-kernel-and-run-all-cells"
+      }
+    }
+  }
+}

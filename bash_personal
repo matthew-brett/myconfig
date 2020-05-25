@@ -12,7 +12,7 @@ UNAME=`uname`
 if [ "$UNAME" == "Linux" ]; then
     . ~/.bash_linux
 elif [[ "$UNAME" == "Darwin" ]]; then
-    . ~/.bash_osx
+    . ~/.bash_mac
 fi
 
 # Default Python, pip executables
