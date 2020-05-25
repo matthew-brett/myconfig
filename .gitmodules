@@ -6,7 +6,7 @@
 	url = https://github.com/qpkorr/vim-bufkill
 [submodule "vim/bundle/pydoc"]
 	path = vim/bundle/pydoc
-	url = git://github.com/fs111/pydoc.vim.git
+	url = https://github.com/fs111/pydoc.vim.git
 [submodule "vim/bundle/supertab"]
 	path = vim/bundle/supertab
 	url = https://github.com/ervandew/supertab.git
@@ -76,3 +76,6 @@
 [submodule "vim/bundle/vim-coffee-script"]
 	path = vim/bundle/vim-coffee-script
 	url = https://github.com/kchmck/vim-coffee-script
+[submodule "vim/bundle/tlib"]
+	path = vim/bundle/tlib
+	url = https://github.com/tomtom/tlib_vim
