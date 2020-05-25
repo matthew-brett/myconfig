@@ -16,13 +16,15 @@
     ~/.bash_mac:
     ~/.bash_personal:
     ~/.bash_utils:
-    ~/.bazaar.conf:
+    ~/.bazaar/bazaar.conf:
     ~/.dotfiles: ''
     ~/.noserc:
     ~/.muttrc:
-    ~/.vmailrc:
+    ~/.vmail/default/.vmailrc: vmailrc
     ~/.screenrc:
     ~/.gitconfig:
+    ~/.git-completion:
+    ~/.gitglobalignore:
     ~/.gnupg/gpg.conf:
     ~/.gnupg/gpg-agent.conf:
       if: '[ `uname` = Darwin ]'
@@ -46,6 +48,8 @@
       glob: true
       path: usr/bin/*
       relink: true
+    ~/.vimrc:
+    ~/.vim:
 
 - create:
   - ~/dev_trees
