@@ -1,0 +1,7 @@
+#!/bin/bash
+# Convert filenames to pdf with Pandoc.
+for in_fname in "$@"
+do
+    out_fname="${in_fname%.*}.pdf"
+    pandoc $in_fname -o $out_fname
+done
