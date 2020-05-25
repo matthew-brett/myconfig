@@ -116,3 +116,6 @@ ln -s ~/gists/to_gist/to_gist.sh ~/usr/bin
 
 # Printing
 # https://universityofbirmingham.service-now.com/itgateway/kb_view.do?sysparm_article=KB13216
+
+# Hammerspoon
+# Quicksilver
