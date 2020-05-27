@@ -1,3 +1,29 @@
+# First - update to latest macOS
+
+# Download Vladstudio wallpapers
+
+# Turn on tap click on trackpad settings
+# Mission control:
+#   Enable spaces via Mission Control (? still relevant).
+#   Disable "Displays have separate spaces".
+# Start Mission Control (F3), then add as many desktops as necessary.
+#
+# Keyboard:
+#   Turn off Caps Lock with Modifier Keys
+#   Turn on shortcuts for desktops with Keyboard Shortcuts
+# Accessibilty:
+#   Turn on drag with drag lock in trackpad.
+# Sharing:
+#   Enable ssh via sharing menu
+
+# Open Finder, go to preferences, add home folder and hard disks to sidebar
+
+# To stick with bash
+chsh -s /bin/bash
+# You will also need the followinng in your .bash_profile
+# export BASH_SILENCE_DEPRECATION_WARNING=1
+# See: https://support.apple.com/en-gb/HT208050
+
 # Set up a Mac from bare OS install
 my_user="my_user"
 
@@ -28,15 +54,10 @@ cd dev_trees
 # The following needs a username and password, so run on its own.
 hub clone myconfig
 
-(cd myconfig && make dotfiles)
-hub clone myvim
-(cd myvim && git submodule update --init --recursive && make links)
+(cd myconfig && ./install)
 
 # More utilities
-brew install vim && brew install macvim
-
-# Bash completion
-brew install bash-completion
+brew install macvim bash-completion
 
 # Set up configuration
 cat >> ~/.bash_profile << EOF
@@ -85,28 +106,18 @@ brew install docker-machine
 docker-machine create default
 docker-machine create --driver virtualbox --virtualbox-memory 8096 default
 
-# Enable spaces via Mission Control
-# Turn off Caps Lock with Keyboard Settings Modifier Keys
-# Turn on shortcuts for desktops with Keyboard Shortcuts
-# Turn on tap click on trackpad settings
-# Turn on drag / drop trackpad from Accessibilty
-# Usual dance to install Vladstudio wallpapers
-# Enable ssh via sharing menu
-# Finder preferences, add home folder and hard disks to sidebar
-
 pip install --user ipython
-# https://stackoverflow.com/questions/10394302/how-do-i-use-vi-keys-in-ipython-under-nix#38329940
 ipython profile create
-cat >> ~/.ipython/profile_default/ipython_config.py << EOF
-c.TerminalInteractiveShell.editing_mode = 'vi'
-EOF
-
-# Look in ~/dev_trees/myconfig/others for other settings
-# to copy, link, e.g
-mkdir -p .ipython .jupyter
-ln -s ~/dev_trees/myconfig/others/.jupyter/jupyter_notebook_config.sh ~/.jupyter
-ln -s ~/dev_trees/myconfig/others/.jupyter/jupyter_console_config.sh ~/.jupyter
-ln -s ~/dev_trees/myconfig/others/.jupyter/custom ~/.jupyter
+# https://stackoverflow.com/questions/10394302/how-do-i-use-vi-keys-in-ipython-under-nix#38329940
+# The below should be covered by dotbot myconfig
+# cat >> ~/.ipython/profile_default/ipython_config.py << EOF
+# c.TerminalInteractiveShell.editing_mode = 'vi'
+# EOF
+# # to copy, link, e.g
+# mkdir -p .ipython .jupyter
+# ln -s ~/dev_trees/myconfig/others/.jupyter/jupyter_notebook_config.sh ~/.jupyter
+# ln -s ~/dev_trees/myconfig/others/.jupyter/jupyter_console_config.sh ~/.jupyter
+# ln -s ~/dev_trees/myconfig/others/.jupyter/custom ~/.jupyter
 
 # Consider
 mkdir ~/gists
