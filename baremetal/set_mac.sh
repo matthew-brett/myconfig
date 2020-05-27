@@ -83,9 +83,11 @@ pip install --user virtualenvwrapper
 
 # Other setup
 brew cask install firefox
-brew install pandoc
-brew install pandoc-citeproc
-brew tap caskroom/cask
+brew cask install hammerspoon quicksilver
+# Start hammerspoon, enable accessibility, start at login
+# Start quicksilver, enable shortcuts
+brew install pandoc pandoc-citeproc
+brew tap homebrew/cask-cask
 brew cask install mactex
 brew install cabal-install
 brew install gnupg
@@ -127,6 +129,3 @@ ln -s ~/gists/to_gist/to_gist.sh ~/usr/bin
 
 # Printing
 # https://universityofbirmingham.service-now.com/itgateway/kb_view.do?sysparm_article=KB13216
-
-# Hammerspoon
-# Quicksilver
