@@ -12,7 +12,7 @@
 #   Turn off Caps Lock with Modifier Keys
 #   Turn on shortcuts for desktops with Keyboard Shortcuts
 # Accessibilty:
-#   Turn on drag with drag lock in trackpad.
+#   Turn on "drag without drag lock" in Pointer Control -> Trackpad options.
 # Sharing:
 #   Enable ssh via sharing menu
 
@@ -85,17 +85,18 @@ pip install --user virtualenvwrapper
 brew cask install firefox
 brew cask install hammerspoon quicksilver
 # Start hammerspoon, enable accessibility, start at login
-# Start quicksilver, enable shortcuts
+# Start quicksilver, preferences, start at login, show icon in menu bar
+# Add shortcuts.
 brew install pandoc pandoc-citeproc
 brew tap homebrew/cask-cask
 brew cask install mactex
-brew install cabal-install
-brew install gnupg
-brew install pinentry-mac
-scp -r ${my_user}@tom.bic.berkeley.edu:.gnupg .
-cat >> ~/.gnupg/gpg-agent.conf << EOF
-pinentry-program /usr/local/bin/pinentry-curses
-EOF
+# brew install cabal-install
+brew install gnupg pinentry-mac
+# From myconfig
+# scp -r ${my_user}@tom.bic.berkeley.edu:.gnupg .
+# cat >> ~/.gnupg/gpg-agent.conf << EOF
+# pinentry-program /usr/local/bin/pinentry-curses
+# EOF
 
 # Misc
 ln -s "/System/Library/Automator/Combine PDF Pages.action/Contents/Resources/join.py" ~/usr/bin/pdfconcat
