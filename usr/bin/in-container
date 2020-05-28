@@ -1,0 +1,6 @@
+#!/bin/bash
+if [ -z $1 ]; then
+    echo Specify container name
+    exit 1
+fi
+docker run -ti --rm -v $PWD:/io $1 /bin/bash
