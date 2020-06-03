@@ -11,6 +11,7 @@
 # Keyboard:
 #   Turn off Caps Lock with Modifier Keys
 #   Turn on shortcuts for desktops with Keyboard Shortcuts
+#   Check "Use keyboard navigation to move focus between controls".
 # Accessibilty:
 #   Turn on "drag without drag lock" in Pointer Control -> Trackpad options.
 # Sharing:
