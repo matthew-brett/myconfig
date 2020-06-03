@@ -115,3 +115,21 @@
      $1
      -->
      """
+
+   'Comment marking':
+     'prefix': 'cmk'
+     'body': """
+     ## marking
+     # $1
+     ## end
+     """
+
+   'MD marking':
+     'prefix': 'mmk'
+     'body': """
+     **marking**
+
+     $1
+
+     **end**
+     """
