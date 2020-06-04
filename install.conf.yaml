@@ -35,6 +35,7 @@
     ~/.jupyter/jupyter_console_config.py: jupyter/jupyter_console_config.py
     ~/.jupyter/nbconfig/notebook.json: jupyter/nbconfig/notebook.json
     ~/.jupyter/custom/custom.js: jupyter/custom/custom.js
+    ~/.config/karabiner/karabiner.json: karabiner.json
     ~/.virtualenvs/postactivate: virtualenvs/postactivate
     ~/.virtualenvs/postdeactivate: virtualenvs/postdeactivate
     ~/.virtualenvs/postmkvirtualenv: virtualenvs/postmkvirtualenv

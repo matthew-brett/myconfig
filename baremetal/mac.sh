@@ -99,6 +99,9 @@ open -a docker
 # Then
 docker run -ti --rm debian:stable /bin/bash
 
+# Install:
+# https://karabiner-elements.pqrs.org
+
 # Consider
 mkdir ~/gists
 cd ~/gists
