@@ -13,7 +13,7 @@ function fill_screen(framer)
     win:setFrame(f)
 end
 
-hs.hotkey.bind({"shift", "cmd", "alt", "ctrl"}, "Up", function()
+hs.hotkey.bind({"shift", "cmd", "alt", "ctrl"}, "N", function()
     -- Expand current window to fill current desktop.
     fill_screen(hs.window.desktop())
 end)
