@@ -17,7 +17,9 @@ function fill_from_dims(x, y, w, h)
     win:setFrame(f)
 end
 
-hs.hotkey.bind({"shift", "cmd", "alt", "ctrl"}, "N", function()
+local hyperShift = {'shift', 'cmd', 'alt', 'ctrl'}
+
+hs.hotkey.bind(hyperShift, "N", function()
     -- Expand current Primary screen, and screen to the East, if present.
     -- (screen elsewhere might be the Cintiq).
     local p_sc = hs.screen.primaryScreen()
@@ -31,12 +33,12 @@ hs.hotkey.bind({"shift", "cmd", "alt", "ctrl"}, "N", function()
     fill_from_dims(f1.x, f1.y, f1.w + f2.w, f1.h + f2.h)
 end)
 
-hs.hotkey.bind({"shift", "cmd", "alt", "ctrl"}, "P", function()
+hs.hotkey.bind(hyperShift, "P", function()
     -- Push current window to Primary display, expand to fill display.
     fill_screen(hs.screen.primaryScreen())
 end)
 
-hs.hotkey.bind({"shift", "cmd", "alt", "ctrl"}, "O", function()
+hs.hotkey.bind(hyperShift, "O", function()
     -- Push current window to second (Other) display, expand to fill display.
     -- Use screen to East of primary display.
     local east_sc = hs.screen.primaryScreen():toEast()
@@ -46,7 +48,7 @@ hs.hotkey.bind({"shift", "cmd", "alt", "ctrl"}, "O", function()
     fill_screen(east_sc)
 end)
 
-hs.hotkey.bind({"shift", "cmd", "alt", "ctrl"}, "C", function()
+hs.hotkey.bind(hyperShift, "C", function()
     -- Push current window to Cintiq display, if present
     local screens = hs.screen.allScreens()
     local index, screen
@@ -56,4 +58,22 @@ hs.hotkey.bind({"shift", "cmd", "alt", "ctrl"}, "C", function()
             return
         end
     end
+end)
+
+function pointer2mid_sc(screen)
+    local rect = screen:fullFrame()
+    local center = hs.geometry.rectMidPoint(rect)hs.mouse.setAbsolutePosition(center)
+end
+
+-- https://medium.com/@jma/use-hammerspoon-to-move-cursor-between-monitors-1a53b727b147
+hs.hotkey.bind(hyperShift, '\\', function()
+    local screen = hs.mouse.getCurrentScreen()
+    local nextScreen = screen:previous()
+    pointer2mid_sc(nextScreen)
+end)
+
+-- As above.
+hs.hotkey.bind(hyperShift, ']', function()
+    local p_sc = hs.screen.primaryScreen()
+    pointer2mid_sc(p_sc)
 end)
