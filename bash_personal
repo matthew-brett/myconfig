@@ -15,9 +15,8 @@ elif [[ "$UNAME" == "Darwin" ]]; then
     . ~/.bash_mac
 fi
 
-# Default Python, pip executables
-PYTHON_EXE=${PYTHON_EXE:-python}
-PIP_EXE=${PIP_EXE:-pip}
+# Default Python
+PYTHON_EXE=${PYTHON_EXE:-python3}
 
 # Find Python user bin directory.
 # Only expecting this to work on Unices (maybe including Cygwin)
@@ -27,7 +26,13 @@ if [ -n "$PY_USER_BIN" ]; then
     # Link chosen Python, pip as user Python, pip
     mkdir -p ${PY_USER_BIN}
     ln -sf $(which $PYTHON_EXE) ${PY_USER_BIN}/python
-    ln -sf $(which $PIP_EXE) ${PY_USER_BIN}/pip
+    PIP_SH=${PY_USER_BIN}/pip
+    rm -rf $PIP_SH
+    cat > $PIP_SH << EOF
+#!/bin/sh
+python -m pip \$@
+EOF
+    chmod u+x $PIP_SH
 fi
 
 # Pager should be defined for mercurial
@@ -48,10 +53,10 @@ alias cdve='pushd ${VIRTUAL_ENV}'
 alias gvr='$GUI_EDITOR --remote-silent'
 
 # Build local wheels
-alias mywhy='$PIP_EXE wheel --wheel-dir=$HOME/wheelhouse'
+alias mywhy='pip wheel --wheel-dir=$HOME/wheelhouse'
 
 # Pip user install
-alias pipu="$PIP_EXE install --user"
+alias pipu="pip install --user"
 
 # Show numpy version
 alias npv="$PYTHON_EXE -c 'import numpy; print(numpy.__version__)'"
