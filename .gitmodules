@@ -51,7 +51,7 @@
 	url = https://github.com/plasticboy/vim-markdown.git
 [submodule "vim/bundle/vim-rst-tables"]
 	path = vim/bundle/vim-rst-tables
-	url = https://github.com/matthew-brett/vim-rst-tables.git
+	url = https://github.com/nvie/vim-rst-tables.git
 [submodule "vim/bundle/vim-addon-mw-utils"]
 	path = vim/bundle/vim-addon-mw-utils
 	url = https://github.com/MarcWeber/vim-addon-mw-utils.git
