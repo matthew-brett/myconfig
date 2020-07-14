@@ -50,6 +50,7 @@
       relink: true
     ~/.vimrc:
     ~/.vim:
+    ~/.spacemacs:
 
 - create:
   - ~/dev_trees
