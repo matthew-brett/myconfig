@@ -1,6 +1,6 @@
 # Spacemacs
 cd ~/dev_trees
-git clone https://github.com/syl20bnr/spacemacs
+git clone https://github.com/syl20bnr/spacemacs --branch develop
 ln -s ~/dev_trees/spacemacs ~/.emacs.d
 # emacs-plus for optional dependencies of emacs
 brew tap d12frosted/emacs-plus
