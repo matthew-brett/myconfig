@@ -499,6 +499,7 @@ before packages are loaded."
   ;; Map ,h ,l to go to the next buffer on the left, right
   (define-key evil-normal-state-map (kbd ",h") 'evil-window-left)
   (define-key evil-normal-state-map (kbd ",l") 'evil-window-right)
+  (define-key evil-normal-state-map (kbd "C-p") 'evil-paste-pop)
   (setq org-capture-templates
         '(("t" "Todo" entry (file+headline "~/org/gtd.org" "Tasks")
            "* TODO %?\n  %i\n  %a")
