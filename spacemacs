@@ -49,6 +49,7 @@ This function should only modify configuration layer settings."
      multiple-cursors
      shell
      org
+     md-roam
      org-roam
      ;; (shell :variables
      ;;        shell-default-height 30
