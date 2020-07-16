@@ -501,7 +501,7 @@ before packages are loaded."
   (setq org-capture-templates
         '(("t" "Todo" entry (file+headline "~/org/gtd.org" "Tasks")
            "* TODO %?\n  %i\n  %a")
-          ("n" "Note" entry (file+headline "~/dev_trees/resampling-with/roam-notes/notes.org" "Notes")
+          ("n" "Note" entry (file+headline "~/dev_trees/resampling-roam/notes.org" "Notes")
            "* %?\nEntered on %U\n  %i\n  %a\n%?")
           ("j" "Journal" entry (file+datetree "~/org/journal.org")
            "* %?\nEntered on %U\n  %i\n  %a")))
