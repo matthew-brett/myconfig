@@ -91,3 +91,6 @@
 [submodule "spacemacs"]
 	path = spacemacs
 	url = https://github.com/matthew-brett/spacemacs.git
+[submodule "doom-emacs"]
+	path = doom-emacs
+	url = https://github.com/hlissner/doom-emacs.git

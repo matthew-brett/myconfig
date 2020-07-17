@@ -50,8 +50,8 @@
       relink: true
     ~/.vimrc:
     ~/.vim:
-    ~/.spacemacs : spacemacs/private/my_spacemacs
-    ~/.emacs.d : spacemacs
+      #~/.spacemacs : spacemacs/private/my_spacemacs
+    ~/.emacs.d : doom-emacs
 
 - create:
   - ~/dev_trees
