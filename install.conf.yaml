@@ -52,6 +52,7 @@
     ~/.vim:
       #~/.spacemacs : spacemacs/private/my_spacemacs
     ~/.emacs.d : doom-emacs
+    ~/.doom.d : doom.d
 
 - create:
   - ~/dev_trees
