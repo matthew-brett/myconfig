@@ -60,7 +60,9 @@
 (setq org-roam-directory "~/dev_trees/resampling-roam")
 
 ;; Window shortcuts that I like from Vim
-(define-key evil-normal-state-map (kbd ",h") 'evil-window-left)
-(define-key evil-normal-state-map (kbd ",l") 'evil-window-right)
-(define-key evil-normal-state-map (kbd ",j") 'evil-window-down)
-(define-key evil-normal-state-map (kbd ",k") 'evil-window-up)
+;; https://github.com/hlissner/doom-emacs/blob/develop/docs/api.org#map
+;; Map in normal mode (:n)
+(map! :n ",h" 'evil-window-left
+      :n ",l" 'evil-window-right
+      :n ",j" 'evil-window-down
+      :n ",k" 'evil-window-up)
