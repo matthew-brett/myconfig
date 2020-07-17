@@ -21,8 +21,9 @@
 ;; font string. You generally only need these two:
 ;; (setq doom-font (font-spec :family "monospace" :size 12 :weight 'semi-light)
 ;;       doom-variable-pitch-font (font-spec :family "sans" :size 13))
-(setq doom-font (font-spec :family "monospace" :size 20 :weight 'semi-light)
-      doom-variable-pitch-font (font-spec :family "sans" :size 21))
+;; (setq doom-font (font-spec :family "Menlo" :size 12 :weight 'semi-light)
+;;      doom-variable-pitch-font (font-spec :family "sans" :size 13))
+(setq doom-font (font-spec :family "Menlo" :size 20))
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
@@ -54,3 +55,12 @@
 ;;
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
+
+;; org-roam config
+(setq org-roam-directory "~/dev_trees/resampling-roam")
+
+;; Window shortcuts that I like from Vim
+(define-key evil-normal-state-map (kbd ",h") 'evil-window-left)
+(define-key evil-normal-state-map (kbd ",l") 'evil-window-right)
+(define-key evil-normal-state-map (kbd ",j") 'evil-window-down)
+(define-key evil-normal-state-map (kbd ",k") 'evil-window-up)
