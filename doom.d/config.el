@@ -57,17 +57,7 @@
 ;; they are implemented.
 
 
-;; https://github.com/nobiot/md-roam#doom
-(use-package! md-roam ; load immediately, before org-roam
-  :config
-  ;; "md" is the default.
-  (setq md-roam-file-extension-single "Rmd")
-  (setq org-roam-file-extensions '("org" "Rmd"))
-  ;; You need the below as of commit `5f24103`.
-  (setq org-roam-title-sources '((mdtitle title mdheadline headline) (mdalias alias)))
-  ;; Also Look for tags in markdown YaML
-  (setq org-roam-tag-sources '(prop md-frontmatter))
-  )
+(setq org-roam-file-extensions '("org" "Rmd" "md"))
 
 ;; org configuration
 (setq org-agenda-files (list
@@ -84,3 +74,19 @@
       :n ",l" 'evil-window-right
       :n ",j" 'evil-window-down
       :n ",k" 'evil-window-up)
+
+;; From:
+;; https://www.ianjones.us/own-your-second-brain#orga972198
+(after! org-roam
+  (map! :leader
+        :prefix "r"
+        :desc "org-roam" "l" #'org-roam
+        :desc "org-roam-insert" "i" #'org-roam-insert
+        :desc "org-roam-switch-to-buffer" "b" #'org-roam-switch-to-buffer
+        :desc "org-roam-find-file" "f" #'org-roam-find-file
+        :desc "org-roam-show-graph" "g" #'org-roam-show-graph
+        :desc "org-roam-insert" "i" #'org-roam-insert
+        :desc "org-roam-capture" "c" #'org-roam-capture))
+
+;; Open RMarkdown, Markdown as org-mode.
+(add-to-list 'auto-mode-alist '("\\.[Rr]?md\\'" . org-mode))
