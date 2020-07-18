@@ -76,18 +76,12 @@
 [submodule "vim/bundle/vim-cython"]
 	path = vim/bundle/vim-cython
 	url = https://github.com/anntzer/vim-cython
-[submodule "vim/bundle/vimwiki"]
-	path = vim/bundle/vimwiki
-	url = https://github.com/vimwiki/vimwiki.git
 [submodule "vim/bundle/fzf"]
 	path = vim/bundle/fzf
 	url = https://github.com/junegunn/fzf
 [submodule "vim/bundle/fzf.vim"]
 	path = vim/bundle/fzf.vim
 	url = https://github.com/junegunn/fzf.vim
-[submodule "vim/bundle/vim-zettel"]
-	path = vim/bundle/vim-zettel
-	url = https://github.com/michal-h21/vim-zettel
 [submodule "spacemacs"]
 	path = spacemacs
 	url = https://github.com/matthew-brett/spacemacs.git

@@ -240,8 +240,6 @@ let g:pandoc#modules#disabled = ["folding"]
 " Hard line wraps, autoformatting
 " let g:pandoc#formatting#mode = 'hA'
 " let g:pandoc#formatting#textwidth = 78
-let g:vimwiki_list = [{'path': '~/dev_trees/resampling-slipbox/',
-                      \ 'syntax': 'markdown', 'ext': '.md'}]
 
 " Dual monitor setup
 nnoremap <silent> <leader><leader>d :set guifont=Menlo\ Regular:h20<CR>
