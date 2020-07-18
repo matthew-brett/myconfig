@@ -56,6 +56,12 @@
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
 
+
+;; org configuration
+(setq org-agenda-files (list
+                        "~/dev_trees/resampling-roam/rs3.org"
+                        ))
+
 ;; org-roam config
 (setq org-roam-directory "~/dev_trees/resampling-roam")
 
