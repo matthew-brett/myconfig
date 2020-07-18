@@ -48,3 +48,9 @@
 ;(unpin! pinned-package another-pinned-package)
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
+
+
+;; https://github.com/nobiot/md-roam#doom
+(package! md-roam
+  :recipe (:host github
+  :repo "nobiot/md-roam"))

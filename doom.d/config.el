@@ -57,6 +57,18 @@
 ;; they are implemented.
 
 
+;; https://github.com/nobiot/md-roam#doom
+(use-package! md-roam ; load immediately, before org-roam
+  :config
+  ;; "md" is the default.
+  (setq md-roam-file-extension-single "Rmd")
+  (setq org-roam-file-extensions '("org" "Rmd"))
+  ;; You need the below as of commit `5f24103`.
+  (setq org-roam-title-sources '((mdtitle title mdheadline headline) (mdalias alias)))
+  ;; Also Look for tags in markdown YaML
+  (setq org-roam-tag-sources '(prop md-frontmatter))
+  )
+
 ;; org configuration
 (setq org-agenda-files (list
                         "~/dev_trees/resampling-roam/rs3.org"
