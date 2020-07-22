@@ -85,7 +85,7 @@ function cp_spi {
 }
 
 # Add usr bins to PATH
-PATH=$HOME/usr/bin:$HOME/usr/local/sbin:$PATH
+PATH=$HOME/usr/bin:$HOME/usr/local/bin:$HOME/usr/local/sbin:$PATH
 
 # Initialize $PATH with sbin locations so I can find system tools
 PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
