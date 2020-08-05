@@ -26,6 +26,9 @@ if [ -n "$PY_USER_BIN" ]; then
     # Link chosen Python, pip as user Python, pip
     mkdir -p ${PY_USER_BIN}
     ln -sf $(which $PYTHON_EXE) ${PY_USER_BIN}/python
+    PY_MAJ_VER=$($PYTHON_EXE -c 'import sys; print(sys.version_info[0])')
+    # Also link python2 or python3 binary
+    ln -sf $(which $PYTHON_EXE) ${PY_USER_BIN}/python${PY_MAJ_VER}
     PIP_SH=${PY_USER_BIN}/pip
     rm -rf $PIP_SH
     cat > $PIP_SH << EOF
