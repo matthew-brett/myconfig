@@ -1,5 +1,7 @@
-# Quit without saving workspace
+# Default is to quit without saving workspace, using q() function.
 q <- function (save="no", ...) {
   quit(save=save, ...)
 }
-options("repos"="http://cran.rstudio.com")
+
+# Default CRAN repo.
+options(repos = c(CRAN = "http://cloud.r-project.org"))
