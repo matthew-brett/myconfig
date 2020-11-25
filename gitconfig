@@ -37,6 +37,6 @@
 [url "git@github.com:matthew-brett/"]
     pushInsteadOf = mygh:
 [credential]
-	helper = cache --timeout=3600
+    helper = cache --timeout=3600
 [pull]
-	ff = only
+    ff = only
