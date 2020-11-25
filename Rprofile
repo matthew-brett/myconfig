@@ -4,4 +4,4 @@ q <- function (save="no", ...) {
 }
 
 # Default CRAN repo.
-options(repos = c(CRAN = "http://cloud.r-project.org"))
+options(repos = c(CRAN = "https://cloud.r-project.org"))
