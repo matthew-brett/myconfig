@@ -48,6 +48,11 @@
       glob: true
       path: usr/bin/*
       relink: true
+    ~/Library/Application Support/Quicksilver:
+      if: '[ `uname` = Darwin ]'
+      glob: true
+      path: quicksilver/*
+      relink: true
     ~/.vimrc:
     ~/.vim:
       #~/.spacemacs : spacemacs/private/my_spacemacs
