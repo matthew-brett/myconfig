@@ -2,8 +2,8 @@
     excludesfile = ~/.gitglobalignore
     editor = vim
 [user]
-    name = Matthew Brett
-    email = matthew.brett@gmail.com
+	name = Matthew Brett
+	email = matthew.brett@gmail.com
     signingkey = F6401040
 [alias]
     st = status
@@ -12,6 +12,7 @@
     lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)[%an]%Creset' --abbrev-commit --date=relative
     slog = log --oneline --graph
     suid = submodule update --init --recursive
+    wdiff = diff --color-words
 [color]
     diff = auto
     status = true
