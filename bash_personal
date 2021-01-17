@@ -82,6 +82,9 @@ alias testve='rmvirtualenv test; mkvirtualenv --python=`which python3.7` test'
 # Remove .orig files
 alias rmorig='find . -name "*.orig" -exec rm {} \;'
 
+# tmux
+alias tma="tmux new -A"
+
 # copy files to scipy_installers directory
 # Username has to be same as login username, or set in ssh config
 function cp_spi {
