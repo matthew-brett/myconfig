@@ -67,4 +67,4 @@
 - shell:
   - git submodule sync --recursive
   - git submodule update --init --recursive
-  - ./doom-emacs/bin/doom --yes sync
+  - (which emacs && ./doom-emacs/bin/doom --yes sync) || echo "No emacs - skipped"
