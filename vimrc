@@ -242,5 +242,5 @@ let g:pandoc#modules#disabled = ["folding"]
 " let g:pandoc#formatting#textwidth = 78
 
 " Dual monitor setup
-nnoremap <silent> <leader><leader>d :set guifont=Menlo\ Regular:h20<CR>
-nnoremap <silent> <leader><leader>w :exe 1 "wincmd w"<CR>:vertical resize 80<CR>:wincmd l<CR>:vertical resize 89<CR>:wincmd l<CR>:vertical resize 80<CR>
+nnoremap <silent> <leader>ff :set guifont=Menlo\ Regular:h20<CR>
+nnoremap <silent> <leader>ww :exe 1 "wincmd w"<CR>:vertical resize 80<CR>:wincmd l<CR>:vertical resize 89<CR>:wincmd l<CR>:vertical resize 80<CR>
