@@ -83,7 +83,7 @@ alias testve='rmvirtualenv test; mkvirtualenv --python=`which python3.7` test'
 alias rmorig='find . -name "*.orig" -exec rm {} \;'
 
 # tmux
-alias tma="tmux new -A"
+alias tma="tmux new -A -s 0"
 
 # copy files to scipy_installers directory
 # Username has to be same as login username, or set in ssh config
