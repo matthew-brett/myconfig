@@ -24,7 +24,7 @@ if [ -z "$PY_USER_BIN" ]; then  # Allow preset in earlier files.
     export PY_USER_BIN=$($PYTHON_EXE -c 'import site; print(site.USER_BASE + "/bin")')
 fi
 
-if [ -n "$PY_USER_BIN" ]; then
+if [[ -z "$START_SKIP_PYINIT" && -n "$PY_USER_BIN" ]]; then
     # Link chosen Python, pip as user Python, pip
     mkdir -p ${PY_USER_BIN}
     ln -sf $(which $PYTHON_EXE) ${PY_USER_BIN}/python
