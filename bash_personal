@@ -20,7 +20,9 @@ PYTHON_EXE=${PYTHON_EXE:-python3}
 
 # Find Python user bin directory.
 # Only expecting this to work on Unices (maybe including Cygwin)
-export PY_USER_BIN=$($PYTHON_EXE -c 'import site; print(site.USER_BASE + "/bin")')
+if [ -z "$PY_USER_BIN"]; then  # Allow preset in earlier files.
+    export PY_USER_BIN=$($PYTHON_EXE -c 'import site; print(site.USER_BASE + "/bin")')
+fi
 
 if [ -n "$PY_USER_BIN" ]; then
     # Link chosen Python, pip as user Python, pip
@@ -85,12 +87,6 @@ alias rmorig='find . -name "*.orig" -exec rm {} \;'
 # tmux
 alias tma="tmux new -A -s 0"
 
-# copy files to scipy_installers directory
-# Username has to be same as login username, or set in ssh config
-function cp_spi {
-    scp $@ nipy.bic.berkeley.edu:/home/scipy_installers
-}
-
 # Add usr bins to PATH
 PATH=$HOME/usr/bin:$HOME/usr/local/bin:$HOME/usr/local/sbin:$PATH
 
@@ -100,13 +96,15 @@ PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
 # Add the standard Python --user executable path
 PATH=$PY_USER_BIN:$PATH
 
-# Add standard --user-install gem path
-command -v gem >& /dev/null && {
-    gem_user_path=`gem environment paths | awk -F ":" '{print $1}'`
-    if [ -n "$gem_user_path" ]; then
-        PATH=${gem_user_path}/bin:$PATH
-    fi
-    }
+if [ -z "$START_SKIP_GEMS" ]; then
+    # Add standard --user-install gem path
+    command -v gem >& /dev/null && {
+        gem_user_path=`gem environment paths | awk -F ":" '{print $1}'`
+        if [ -n "$gem_user_path" ]; then
+            PATH=${gem_user_path}/bin:$PATH
+        fi
+        }
+fi
 
 # Search paths for LaTeX (Dont' forget the final colons.  The null entry `::'
 # denotes `default system directories' -- try finding that in the
@@ -125,23 +123,13 @@ export BSTINPUTS=.:$HOME/texmf/bstinputs::
 export MATLABPATH=$HOME/matlab:$HOME/matlab/m2html
 
 # git completion
-. $HOME/.git-completion
-PS1='[\u@\h ${PWD/$HOME/~}$(__git_ps1 " (%s)")]\$ '
+if [ -z "$START_SKIP_GITC" ]; then
+    . $HOME/.git-completion
+    PS1='[\u@\h ${PWD/$HOME/~}$(__git_ps1 " (%s)")]\$ '
+fi
 
 # install virtualenvwrapper functions if available
 export WORKON_HOME=$HOME/.virtualenvs
-# Prefer lazy version
-venv_wrap=$(command -v virtualenvwrapper_lazy.sh 2>&1 /dev/null)
-if [ -n "$venv_wrap" ] &&  [ -f "$venv_wrap" ]; then
-    source $venv_wrap
-    alias lve='virtualenvwrapper_load'
-else
-    venv_wrap=$(command -v virtualenvwrapper.sh 2>&1 /dev/null)
-    if [ -n "$venv_wrap" ] &&  [ -f "$venv_wrap" ]; then
-        source $venv_wrap
-        alias lve='echo "Already loaded"'
-    fi
-fi
 
 # pushd to directory for python package
 function pushdp {
@@ -169,10 +157,9 @@ export PATH
 #
 # Use with: e.g.:
 #   perl -MCPAN -Mlocal::lib -e 'CPAN::install(Math::Matrix)'
-perl_local_lib="perl -I$HOME/perl5/lib/perl5 -Mlocal::lib"
-"$perl_local_lib" >& /dev/null && {
-    eval "$($perl_local_lib)"
-    }
-
-# Rackspace CDN for wheels
-export CDN_URL=https://3f23b170c54c2533c070-1c8a9b3114517dc5fe17b7c3f8c63a43.ssl.cf2.rackcdn.com
+if [ -z "$START_SKIP_PERLP" ]; then
+    perl_local_lib="perl -I$HOME/perl5/lib/perl5 -Mlocal::lib"
+    "$perl_local_lib" >& /dev/null && {
+        eval "$($perl_local_lib)"
+        }
+fi
