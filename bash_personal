@@ -20,7 +20,7 @@ PYTHON_EXE=${PYTHON_EXE:-python3}
 
 # Find Python user bin directory.
 # Only expecting this to work on Unices (maybe including Cygwin)
-if [ -z "$PY_USER_BIN"]; then  # Allow preset in earlier files.
+if [ -z "$PY_USER_BIN" ]; then  # Allow preset in earlier files.
     export PY_USER_BIN=$($PYTHON_EXE -c 'import site; print(site.USER_BASE + "/bin")')
 fi
 
