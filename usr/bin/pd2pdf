@@ -3,5 +3,5 @@
 for in_fname in "$@"
 do
     out_fname="${in_fname%.*}.pdf"
-    pandoc $in_fname -o $out_fname
+    pandoc $in_fname -o $out_fname --citeproc
 done
