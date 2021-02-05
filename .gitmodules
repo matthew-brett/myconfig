@@ -88,3 +88,6 @@
 [submodule "doom-emacs"]
 	path = doom-emacs
 	url = https://github.com/hlissner/doom-emacs.git
+[submodule "vim/bundle/diffchar.vim"]
+	path = vim/bundle/diffchar.vim
+	url = https://github.com/rickhowe/diffchar.vim
