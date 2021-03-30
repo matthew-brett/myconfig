@@ -11,11 +11,15 @@
   "keys": {
     "command": {
       "bind": {
-        "cmd-shift-e": "jupyter-notebook:restart-kernel-and-run-all-cells",
+        "cmd-shift-e": "jupyter-notebook:close-and-halt",
         "f,e": "jupyter-notebook:restart-kernel-and-run-all-cells",
         "ctrl-f,h": "jupyter-notebook:close-and-halt",
-        "ctrl-f,r": "jupyter-notebook:restart-kernel-and-run-all-cells"
+        "ctrl-f,r": "jupyter-notebook:restart-kernel-and-run-all-cells",
+        "cmd-shift-r": "jupyter-notebook:restart-kernel-and-run-all-cells"
       }
     }
+  },
+  "load_extensions": {
+    "vim_binding/vim_binding": true
   }
 }
