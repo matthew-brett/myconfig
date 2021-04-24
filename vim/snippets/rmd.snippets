@@ -1,3 +1,10 @@
+# Override other snippets.
+priority 1
+
+# emdash
+snippet ---
+	—
+
 snippet rk
 	\`\`\`{r}
 	${0:${VISUAL}}
@@ -5,6 +12,14 @@ snippet rk
 
 snippet pk
 	\`\`\`{python}
+	${0:${VISUAL}}
+	\`\`\`
+
+snippet pko
+	\`\`\`{python}
+
+snippet pkh
+	\`\`\`{python tags=c("hide-cell")}
 	${0:${VISUAL}}
 	\`\`\`
 
