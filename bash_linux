@@ -13,3 +13,6 @@ alias apt-up='sudo apt-get update;sudo apt-get -y --force-yes dselect-upgrade'
 #         # Activate gui popup for ssh passphrases
 #         eval `gnome-keyring-daemon -s`
 # esac
+
+# Gopass autocompletion
+type -t gopass >& /dev/null && source /dev/stdin <<<"$(gopass completion bash)"

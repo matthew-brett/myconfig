@@ -87,6 +87,9 @@ alias rmorig='find . -name "*.orig" -exec rm {} \;'
 # tmux
 alias tma="tmux new -A -s 0"
 
+# gopass git repo
+alias cdgopass="cd $(gopass config path | sed 's/^path: //')"
+
 # Add usr bins to PATH
 PATH=$HOME/usr/bin:$HOME/usr/local/bin:$HOME/usr/local/sbin:$PATH
 

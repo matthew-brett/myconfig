@@ -41,3 +41,5 @@
     helper = cache --timeout=3600
 [pull]
     ff = only
+[init]
+	defaultBranch = main
