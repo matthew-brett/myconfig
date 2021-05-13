@@ -133,6 +133,10 @@ fi
 
 # install virtualenvwrapper functions if available
 export WORKON_HOME=$HOME/.virtualenvs
+_VENV_WRAPPER=$(type -pf virtualenvwrapper_lazy.sh)
+if [ -n "$_VENV_WRAPPER" ]; then
+    source ${_VENV_WRAPPER}
+fi
 
 # pushd to directory for python package
 function pushdp {

@@ -15,4 +15,4 @@ alias apt-up='sudo apt-get update;sudo apt-get -y --force-yes dselect-upgrade'
 # esac
 
 # Gopass autocompletion
-type -t gopass >& /dev/null && source /dev/stdin <<<"$(gopass completion bash)"
+type -t gopass >& /dev/null && source <(gopass completion bash)

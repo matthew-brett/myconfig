@@ -28,3 +28,6 @@ export POPY=/Library/Frameworks/Python.framework/Versions
 if [ -f $(brew --prefix)/etc/bash_completion ]; then
     . $(brew --prefix)/etc/bash_completion
 fi
+
+# Gopass autocompletion
+type -t gopass >& /dev/null && source /dev/stdin <<<"$(gopass completion bash)"
