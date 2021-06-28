@@ -56,8 +56,6 @@
     ~/.vimrc:
     ~/.vim:
       #~/.spacemacs : spacemacs/private/my_spacemacs
-    ~/.emacs.d : doom-emacs
-    ~/.doom.d : doom.d
 
 - create:
   - ~/dev_trees
@@ -67,4 +65,3 @@
 - shell:
   - git submodule sync --recursive
   - git submodule update --init --recursive
-  - (which emacs && ./doom-emacs/bin/doom --yes sync) || echo "No emacs - skipped"
