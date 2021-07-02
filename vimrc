@@ -214,16 +214,11 @@ let g:pandoc#syntax#codeblocks#embeds#langs = ["python"]
 au BufNewFile,BufRead *.html,*.htm,*.shtml,*.stm,*.tpl set ft=jinja
 " Binding for pep8 checking
 let g:pep8_map="<leader>8"
-" CtrlP plugin
-" https://github.com/ctrlpvim/ctrlp.vim
-if executable('ag')
-    " from: http://stackoverflow.com/a/17327372
-    " Use Ag over Grep
-    set grepprg=ag\ --nogroup\ --nocolor
-    " Use ag in CtrlP for listing files. Lightning fast and respects .gitignore
-    let g:ctrlp_user_command = 'ag %s -l --nocolor -g ""'
+" https://www.wezm.net/technical/2016/09/ripgrep-with-vim/
+if executable("rg")
+    set grepprg=rg\ --vimgrep\ --no-heading
+    set grepformat=%f:%l:%c:%m,%f:%l:%m
 endif
-noremap <silent> ,ff :CtrlPMixed<CR>
 " Python syntax highlighting
 let python_highlight_all = 1
 " RST processors
