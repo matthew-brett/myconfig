@@ -192,6 +192,10 @@ nmap <silent> <leader>R :set ft=r<CR>
 nmap <silent> <leader>rmd :set ft=rmd<CR>
 
 " set nofoldenable    " disable folding in general.
+" https://vim.fandom.com/wiki/All_folds_open_when_opening_a_file
+" Disable folding for some files.
+autocmd Syntax python,rmarkdown,pandoc,markdown setlocal foldmethod=syntax
+autocmd Syntax python,rmarkdown,pandoc,markdown normal zR
 
 " =================================
 "  configure plugins
@@ -238,5 +242,10 @@ let g:pandoc#modules#disabled = ["folding"]
 
 " Dual monitor setup
 " :set guifont to see current font size
-nnoremap <silent> <leader>ff :set guifont=Menlo\ Regular:h19<CR>
+nnoremap <silent> <leader>ff :set guifont=Menlo\ Regular:h19 \| :wincmd v \| :wincmd v \| :wincmd v \| wincmd =<CR>
 nnoremap <silent> <leader>ww :exe 1 "wincmd w"<CR>:vertical resize 80<CR>:wincmd l<CR>:vertical resize 89<CR>:wincmd l<CR>:vertical resize 80<CR>
+
+" Avoid gopass secret leak
+" https://github.com/gopasspw/gopass/blob/master/docs/setup.md#securing-your-editor
+au BufNewFile,BufRead /dev/shm/gopass.* setlocal noswapfile nobackup noundofile
+au BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofile
