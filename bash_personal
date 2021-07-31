@@ -87,8 +87,11 @@ alias rmorig='find . -name "*.orig" -exec rm {} \;'
 # tmux
 alias tma="tmux new -A -s 0"
 
-# gopass git repo
+# gopass
+# Update git repo
 alias pgopass="(cd $(gopass config path | sed 's/^path: //') && git pull --rebase )"
+# Validate example key
+alias gop="gopass go"
 
 # Add usr bins to PATH
 PATH=$HOME/usr/bin:$HOME/usr/local/bin:$HOME/usr/local/sbin:$PATH
@@ -141,6 +144,10 @@ fi
 # pushd to directory for python package
 function pushdp {
    pushd `$PYTHON_EXE -c "import os; import $1; print(os.path.dirname($1.__file__))"`
+}
+
+function pushdpp {
+   pushd `python -c "import os; import $1; print(os.path.dirname($1.__file__))"`
 }
 
 # vi bash command line editing
