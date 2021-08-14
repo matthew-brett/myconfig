@@ -242,7 +242,8 @@ let g:pandoc#modules#disabled = ["folding"]
 
 " Dual monitor setup
 " :set guifont to see current font size
-nnoremap <silent> <leader>ff :set guifont=Menlo\ Regular:h19 \| :wincmd v \| :wincmd v \| :wincmd v \| wincmd =<CR>
+nnoremap <silent> <leader>ff :set guifont=Menlo\ Regular:h19<CR>
+nnoremap <silent> <leader>fs :set guifont=Menlo\ Regular:h19 \| :wincmd v \| :wincmd v \| :wincmd v \| wincmd =<CR>
 nnoremap <silent> <leader>ww :exe 1 "wincmd w"<CR>:vertical resize 80<CR>:wincmd l<CR>:vertical resize 89<CR>:wincmd l<CR>:vertical resize 80<CR>
 
 " Avoid gopass secret leak
