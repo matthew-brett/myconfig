@@ -1,0 +1,7 @@
+#!/bin/bash
+cat << EOF > .gitignore
+*~
+*.swp
+.DS_Store
+.ipynb_checkpoints/
+EOF
