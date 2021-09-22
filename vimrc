@@ -250,3 +250,8 @@ nnoremap <silent> <leader>ww :exe 1 "wincmd w"<CR>:vertical resize 80<CR>:wincmd
 " https://github.com/gopasspw/gopass/blob/master/docs/setup.md#securing-your-editor
 au BufNewFile,BufRead /dev/shm/gopass.* setlocal noswapfile nobackup noundofile
 au BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofile
+
+" Ultisnips
+let g:UltiSnipsExpandTrigger="<tab>"
+" List all snippets for current filetype
+let g:UltiSnipsListSnippets=",ls"
