@@ -106,3 +106,5 @@ resample
 affine
 Burkitt
 SNSQGMD
+Setuptools
+Distutils
