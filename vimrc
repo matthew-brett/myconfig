@@ -235,7 +235,7 @@ let g:pandoc#modules#disabled = ["chdir"]
 let g:pandoc#modules#disabled = ["folding"]
 " Disable markdown folding
 " https://stackoverflow.com/questions/5017009/confusion-about-vim-folding-how-to-disable
-" let g:vim_markdown_folding_disabled = 1
+let g:vim_markdown_folding_disabled = 1
 " Hard line wraps, autoformatting
 " let g:pandoc#formatting#mode = 'hA'
 " let g:pandoc#formatting#textwidth = 78
