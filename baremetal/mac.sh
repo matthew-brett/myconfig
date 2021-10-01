@@ -84,7 +84,7 @@ brew install pandoc pandoc-citeproc
 brew tap homebrew/cask-cask
 brew install gnupg pinentry-mac
 # This one takes ages.
-brew cask install mactex
+brew install --cask mactex-no-gui
 
 # Misc
 ln -s "/System/Library/Automator/Combine PDF Pages.action/Contents/Resources/join.py" ~/usr/bin/pdfconcat
@@ -110,3 +110,11 @@ ln -s ~/gists/to_gist/to_gist.sh ~/usr/bin
 
 # UoB printing
 # https://universityofbirmingham.service-now.com/itgateway/kb_view.do?sysparm_article=KB13216
+brew install gopass gopass-jsonapi
+# https://github.com/gopasspw/gopass/blob/master/docs/setup.md#filling-in-passwords-from-browser
+gopass clone freshpi:repos/gopass.git
+scp -r lockdowns:.gnupg/* ~/.gnupg
+
+# Turn off any annoying keyboard shortcuts in
+# Preferences - Keyboard - Text
+# Especially - two spaces -> . 
