@@ -254,4 +254,4 @@ au BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofi
 " Ultisnips
 let g:UltiSnipsExpandTrigger="<tab>"
 " List all snippets for current filetype
-let g:UltiSnipsListSnippets=",ls"
+let g:UltiSnipsListSnippets=",sl"
