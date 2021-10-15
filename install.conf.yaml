@@ -1,5 +1,10 @@
 # Originally from:
 # https://github.com/anishathalye/dotfiles/blob/master/.install.conf.yaml
+#
+# On Windows, see https://github.com/anishathalye/dotbot/wiki/Troubleshooting
+# Run git bash as Administrator, and
+# export MSYS=winsymlinks:nativestrict
+
 - defaults:
     link:
       create: true
