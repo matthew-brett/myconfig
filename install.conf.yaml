@@ -49,6 +49,9 @@
     ~/.atom/keymap.cson : atom/keymap.cson
     ~/.atom/r-snippet.patch : atom/r-snippet.patch
     ~/.atom/snippets.cson : atom/snippets.cson
+    ~/Documents/WindowsPowerShell/Profile.ps1 :
+      if '[[ `uname` =~ MINGW ]]'
+      path: Documents/WindowsPowerShell/Profile.ps1
     ~/usr/bin:
       glob: true
       path: usr/bin/*
