@@ -3,6 +3,17 @@
 " is loaded with the command line -u file and other circumstances, so this is
 " belt-and-braces
 set nocompatible
+
+" On Windows, also use ~/.vim instead of ~/vimfiles; this makes
+" synchronization across (heterogeneous) systems easier.
+" https://stackoverflow.com/a/53370672
+if has('win32') || has('win64')
+    let &runtimepath = substitute(&runtimepath, '\C\V' . escape($HOME.'/vimfiles', '\'), escape($HOME.'/.vim', '\&'), 'g')
+    if exists('&packpath')
+        let &packpath = &runtimepath
+    endif
+endif
+
 " Use pathogen to easily modify the runtime path to include all
 " plugins under the ~/.vim/bundle directory
 runtime bundle/vim-pathogen/autoload/pathogen.vim
