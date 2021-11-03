@@ -12,6 +12,8 @@ if has('win32') || has('win64')
     if exists('&packpath')
         let &packpath = &runtimepath
     endif
+  " Avoid mswin.vim making Ctrl-v act as paste
+  noremap <C-V> <C-V>
 endif
 
 " Use pathogen to easily modify the runtime path to include all
