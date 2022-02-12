@@ -12,6 +12,26 @@ snippet {cell
 {{< var cell >}}
 endsnippet
 
+snippet {npr
+{{< var np_or_r >}}
+endsnippet
+
+snippet {arrn
+{{< var array_name >}}
+endsnippet
+
+snippet {aarrn
+{{< var a_array_name >}}
+endsnippet
+
+snippet {tv
+{{< var true_val >}}
+endsnippet
+
+snippet {fv
+{{< var false_val >}}
+endsnippet
+
 snippet [[rp
 [$1]{.r}[$2]{.python}
 endsnippet
@@ -22,4 +42,16 @@ endsnippet
 
 snippet var
 {{< var ${VISUAL} >}}
+endsnippet
+
+snippet pe "Python edition" b
+\`\`\`{python, opts.label="py_ed"}
+$0
+\`\`\`
+endsnippet
+
+snippet re "R edition" b
+\`\`\`{r, opts.label="r_ed"}
+$0
+\`\`\`
 endsnippet
