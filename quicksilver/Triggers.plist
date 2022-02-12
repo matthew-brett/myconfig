@@ -159,13 +159,13 @@
 		</dict>
 		<dict>
 			<key>ID</key>
-			<string>1C80EB2C-4C3E-4EF1-8796-EE9E2839F17C</string>
+			<string>C1179639-3119-4AF2-AF02-ACD349B3557C</string>
 			<key>command</key>
 			<dict>
 				<key>actionID</key>
 				<string>FileOpenAction</string>
 				<key>directID</key>
-				<string>/Applications/zoom.us.app</string>
+				<string>/Users/mb312/Applications/zoom.us.app</string>
 			</dict>
 			<key>enabled</key>
 			<true/>
