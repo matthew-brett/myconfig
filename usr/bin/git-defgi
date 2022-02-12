@@ -4,4 +4,6 @@ cat << EOF > .gitignore
 *.swp
 .DS_Store
 .ipynb_checkpoints/
+__pycache__/
+*.pyc
 EOF
