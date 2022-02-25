@@ -88,7 +88,7 @@ alias rmorig='find . -name "*.orig" -exec rm {} \;'
 alias tma="tmux new -A -s 0"
 
 # gopass
-GOPASS_PATH=$(gopass config path | awk '{print $2}')
+GOPASS_PATH=$(gopass config path 2> /dev/null | awk '{print $2}')
 alias cdgopass="cd $GOPASS_PATH"
 # Update git repo
 alias pgopass="(cd $GOPASS_PATH && git pull --rebase )"
