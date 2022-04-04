@@ -176,3 +176,7 @@ if [ -z "$START_SKIP_PERLP" ]; then
         eval "$($perl_local_lib)"
         }
 fi
+
+# Make GPG sign when using Git
+# https://stackoverflow.com/a/54809060
+export GPG_TTY=$(tty)
