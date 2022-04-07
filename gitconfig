@@ -43,3 +43,5 @@
     ff = only
 [init]
 	defaultBranch = main
+[hub]
+	protocol = https
