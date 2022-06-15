@@ -21,13 +21,15 @@ catch [System.Management.Automation.CommandNotFoundException]
 
 $env:PATH = "$env:PATH;${HOME}\bin"
 
+# This import is very slow.
 # https://github.com/dahlbyk/posh-git
-Import-Module posh-git
+# PowerShellGet\Install-Module posh-git -Scope CurrentUser -Force
+# Import-Module posh-git
 
 # https://github.com/Pscx/Pscx
 # https://stackoverflow.com/a/30122702
 # Import-VisualStudioVars -Architecture amd64
-Install-Module Pscx -Scope CurrentUser -AllowClobber
+# Install-Module Pscx -Scope CurrentUser -AllowClobber
 
 # Also add this to Terminal settings
 #
