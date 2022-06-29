@@ -52,6 +52,9 @@
     ~/Documents/WindowsPowerShell/Profile.ps1 :
       path: Profile.ps1
       if: '[ -d "/c/Windows/System32" ]'
+    ~/bin/gvr.bat :
+      path: gvr.bat
+      if: '[ -d "/c/Windows/System32" ]'
     ~/usr/bin:
       glob: true
       path: usr/bin/*
