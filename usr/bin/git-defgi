@@ -6,4 +6,5 @@ cat << EOF > .gitignore
 .ipynb_checkpoints/
 __pycache__/
 *.pyc
+*.orig
 EOF
