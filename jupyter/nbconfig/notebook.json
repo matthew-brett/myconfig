@@ -6,7 +6,7 @@
   },
   "Notebook": {
     "Header": false,
-    "Toolbar": false
+    "Toolbar": true
   },
   "keys": {
     "command": {
@@ -20,6 +20,7 @@
     }
   },
   "load_extensions": {
-    "vim_binding/vim_binding": true
+    "vim_binding/vim_binding": true,
+    "nbextensions_configurator/config_menu/main": true
   }
 }

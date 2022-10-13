@@ -77,12 +77,13 @@ alias denose=unnose
 alias renose='mv $HOME/.noserc.bak $HOME/.noserc'
 
 # Delete, make a temporary virtualenv
-alias test2ve='rmvirtualenv test2; mkvirtualenv --python=`which python2.7` test2'
-alias test3ve='rmvirtualenv test3; mkvirtualenv --python=`which python3.7` test3'
-alias testve='rmvirtualenv test; mkvirtualenv --python=`which python3.7` test'
+alias test2ve='rmvirtualenv test2; mkvirtualenv --python=`which python2` test2'
+alias test3ve='rmvirtualenv test3; mkvirtualenv --python=`which python3` test3'
+alias testve='rmvirtualenv test; mkvirtualenv --python=`which python3` test'
 
 # Remove .orig files
 alias rmorig='find . -name "*.orig" -exec rm {} \;'
+alias rmipynb='find . -name "*.ipynb" -exec rm {} \;'
 
 # tmux
 alias tma="tmux new -A -s 0"
