@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+# Convert filenames to RTF
+
+from pathlib import Path
+from io import BytesIO
+from argparse import ArgumentParser, RawDescriptionHelpFormatter
+from subprocess import Popen, PIPE
+import re
+
+
+def get_parser():
+    parser = ArgumentParser(description=__doc__,  # Usage from docstring
+                            formatter_class=RawDescriptionHelpFormatter)
+    parser.add_argument('fname',
+                        help='Markdown file to convert to RTF')
+    parser.add_argument('-b', '--link-base',
+                        help='Base for links')
+    return parser
+
+
+def proc_notebook(fname, link_base):
+    nb = Path(fname).read_text()
+    if link_base:
+        nb = re.sub('{{ link_base }}', link_base, nb)
+    return nb
+
+
+def pipe_rtf(fname, link_base=None):
+    out_text = proc_notebook(fname, link_base)
+    p1 = Popen(["pandoc", "-s", '-t', 'rtf', '--citeproc'],
+               stdin=PIPE,
+               stdout=PIPE)
+    stdout_data, _ = p1.communicate(input=out_text.encode('utf-8'))
+    p2 = Popen(["pbcopy"], stdin=PIPE)
+    p2.communicate(input=stdout_data)
+
+
+def main():
+    parser = get_parser()
+    args = parser.parse_args()
+    pipe_rtf(args.fname, args.link_base)
+
+
+if __name__ == '__main__':
+    main()
