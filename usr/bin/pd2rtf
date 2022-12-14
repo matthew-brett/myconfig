@@ -2,7 +2,6 @@
 # Convert filenames to RTF
 
 from pathlib import Path
-from io import BytesIO
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 from subprocess import Popen, PIPE
 import re
@@ -13,7 +12,7 @@ def get_parser():
                             formatter_class=RawDescriptionHelpFormatter)
     parser.add_argument('fname',
                         help='Markdown file to convert to RTF')
-    parser.add_argument('-b', '--link-base',
+    parser.add_argument('-b', '--link-base', default='..',
                         help='Base for links')
     return parser
 
