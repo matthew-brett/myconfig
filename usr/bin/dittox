@@ -1,0 +1,14 @@
+#!/bin/bash
+# Extract archives with ditto
+if [ -z "$1" ]; then
+    echo "Specify archive to extract"
+    exit 1
+fi
+archive="$1"
+shift
+out_dir="."
+if [ -n "$1" ]; then
+    out_dir=$1
+fi
+
+ditto -V -x -k --sequesterRsrc --rsrc "$archive" "$out_dir"
