@@ -1,3 +1,3 @@
 no-grab
 default-cache-ttl 7200
-pinentry-program ${HOMEBREW_PREFIX}/usr/local/bin/pinentry
+pinentry-program ${HOMEBREW_PREFIX}/bin/pinentry
