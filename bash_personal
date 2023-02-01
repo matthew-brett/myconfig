@@ -89,7 +89,7 @@ alias rmipynb='find . -name "*.ipynb" -exec rm {} \;'
 alias tma="tmux new -A -s 0"
 
 # gopass
-GOPASS_PATH=$(gopass config path 2> /dev/null | sed 's/^path: //')
+GOPASS_PATH=$(gopass config mounts.path 2> /dev/null)
 alias cdgopass="cd $GOPASS_PATH"
 # Update git repo
 alias pgopass="(cd $GOPASS_PATH && git pull --rebase )"
