@@ -24,9 +24,12 @@ fi
 # Python.org Python for OSX
 export POPY=/Library/Frameworks/Python.framework/Versions
 
+# Homebrew prefix for below, and GPG agent
+export HOMEBREW_PREFIX=$(brew --prefix)
+
 # bash completion
-if [ -f $(brew --prefix)/etc/bash_completion ]; then
-    . $(brew --prefix)/etc/bash_completion
+if [ -f ${HOMEBREW_PREFIX}/etc/bash_completion ]; then
+    . ${HOMEBREW_PREFIX}/etc/bash_completion
 fi
 
 # Gopass autocompletion
