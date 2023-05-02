@@ -37,3 +37,6 @@ type -t gopass >& /dev/null && source /dev/stdin <<<"$(gopass completion bash)"
 
 # Eject cd
 alias eject-cd="drutil tray eject"
+
+# Restart Finder
+alias restart-finder="killall -KILL Finder"
