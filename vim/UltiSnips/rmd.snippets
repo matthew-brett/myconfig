@@ -4,3 +4,11 @@ priority 50
 snippet --- "---"
 —
 endsnippet
+
+snippet svg "add svg figure to chapter"
+\`\`\`{r fig-$1, echo=FALSE, fig.align='center', fig.cap="${VISUAL}"}
+include_svg('images/$1.svg')
+\`\`\`
+
+
+endsnippet
