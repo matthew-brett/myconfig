@@ -38,7 +38,9 @@
       path: gpg-agent-mac.conf.built
     ~/.hgrc:
     ~/.inputrc:
-    ~/.ipython/profile_default/ipython_config.py: ipython/ipython_config.py
+    ~/.ipython/profile_default:
+      glob: true
+      path: ipython/*
     ~/.jupyter/jupyter_notebook_config.py: jupyter/jupyter_notebook_config.py
     ~/.jupyter/jupyter_console_config.py: jupyter/jupyter_console_config.py
     ~/.jupyter/nbconfig/notebook.json: jupyter/nbconfig/notebook.json
