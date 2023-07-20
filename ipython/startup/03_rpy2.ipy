@@ -1,0 +1,6 @@
+# Commands run at the start of each Jupyter / IPython session
+try:
+    import rpy2
+    %load_ext rpy2.ipython
+except ImportError:
+    pass
