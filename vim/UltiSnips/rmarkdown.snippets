@@ -24,16 +24,20 @@ snippet {aarrn
 {{< var a_array_name >}}
 endsnippet
 
-snippet {tv
-{{< var true_val >}}
+snippet {t
+{{< var true >}}
 endsnippet
 
-snippet {fv
-{{< var false_val >}}
+snippet {f
+{{< var false >}}
 endsnippet
 
-snippet [[rp
+snippet [rp
 [$1]{.r}[$2]{.python}
+endsnippet
+
+snippet [rpc
+[\`$1\`]{.r}[\`$2\`]{.python}
 endsnippet
 
 snippet {rk
@@ -45,14 +49,26 @@ snippet var
 endsnippet
 
 snippet pe "Python edition" b
-\`\`\`{python, opts.label="py_ed"}
-$0
+\`\`\`{python}
+${VISUAL}$0
 \`\`\`
 endsnippet
 
 snippet re "R edition" b
-\`\`\`{r, opts.label="r_ed"}
-$0
+\`\`\`{r}
+${VISUAL}$0
+\`\`\`
+endsnippet
+
+snippet rall "R, all editions, invisible" b
+\`\`\`{r, echo=FALSE, eval=TRUE}
+${VISUAL}$0
+\`\`\`
+endsnippet
+
+snippet pall "Python, all editions, invisible" b
+\`\`\`{python, echo=FALSE, eval=TRUE}
+${VISUAL}$0
 \`\`\`
 endsnippet
 
@@ -60,7 +76,7 @@ snippet {arr
 {{< var array >}}
 endsnippet
 
-snippet {samp
+snippet {vs
 {{< var sample >}}
 endsnippet
 
@@ -68,8 +84,20 @@ snippet {binc
 {{< var bincount >}}
 endsnippet
 
+snippet `ro "Round"
+[`round`]{.r}[`np.round`]{.python}
+endsnippet
+
 snippet {anarr
 {{< var an_array >}}
+endsnippet
+
+snippet {sum
+{{< var sum >}}
+endsnippet
+
+snippet {v "Generic Quarto var"
+{{< var ${VISUAL}$0 >}}
 endsnippet
 
 snippet str "Show the result" b
@@ -77,3 +105,14 @@ snippet str "Show the result" b
 # Show the result
 $0
 endsnippet
+
+snippet callnote "Callout note"
+:::{.callout-note}
+## ${VISUAL}$0
+
+
+:::
+
+
+endsnippet
+
