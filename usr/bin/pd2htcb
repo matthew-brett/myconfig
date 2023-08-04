@@ -1,0 +1,8 @@
+#!/bin/bash
+# Convert filename to html with Pandoc, copy to clipboard
+in_fname=$1
+if [ -z "$in_fname" ]; then
+    echo "Specify filename"
+    exit 1
+fi
+pandoc $in_fname -t html | pbcopy
