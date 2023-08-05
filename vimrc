@@ -210,8 +210,8 @@ nmap <silent> <leader>rmd :set ft=rmd<CR>
 autocmd Syntax python,rmarkdown,pandoc,markdown setlocal foldmethod=syntax
 autocmd Syntax python,rmarkdown,pandoc,markdown normal zR
 
-# https://medium.com/usevim/vim-101-virtual-editing-661c99c05847
-# Allow block mode definitions in empty space.
+" https://medium.com/usevim/vim-101-virtual-editing-661c99c05847
+" Allow block mode definitions in empty space.
 set virtualedit=block
 
 " =================================
