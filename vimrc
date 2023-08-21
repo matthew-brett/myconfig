@@ -272,3 +272,7 @@ au BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofi
 let g:UltiSnipsExpandTrigger="<tab>"
 " List all snippets for current filetype
 let g:UltiSnipsListSnippets=",sl"
+
+" Setting syntax
+nnoremap <silent> <leader>sp :set ft=python<CR>
+nnoremap <silent> <leader>sr :set ft=rmarkdown<CR>
