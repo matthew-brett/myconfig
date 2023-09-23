@@ -97,7 +97,7 @@ alias pgopass="(cd $GOPASS_PATH && git pull --rebase )"
 # Validate example key
 alias gop="gopass go"
 alias gos="gopass show -c"
-alias gog="gopass generate -c"
+alias gog="gopass generate -c -s"
 alias goe="gopass edit"
 
 # Add usr bins to PATH
