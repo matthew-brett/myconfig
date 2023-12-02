@@ -276,3 +276,11 @@ let g:UltiSnipsListSnippets=",sl"
 " Setting syntax
 nnoremap <silent> <leader>sp :set ft=python<CR>
 nnoremap <silent> <leader>sr :set ft=rmarkdown<CR>
+
+" add keymappings in goneovim only
+if exists("g:goneovim")
+  " set CMD+V to paste in all modes
+  nnoremap <D-v> a<C-r>+<Esc>
+  inoremap <D-v> <C-r>+
+  cnoremap <D-v> <C-r>+
+endif
