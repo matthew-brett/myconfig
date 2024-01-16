@@ -1,12 +1,11 @@
 #!/usr/bin/env python3
-""" Write out Teams attendance in suitable order
+""" Write out Teams attendance from attendance files in alphabetical order
 """
 
 import re
 from pathlib import Path
+from datetime import datetime
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
-
-import pandas as pd
 
 
 START_TIME_RE = re.compile(
@@ -20,14 +19,17 @@ INSTRUCTORS = (
     'Peter Rush',
     'Anson Cheung')
 
+DATE_FMT = '%m/%d/%y, %I:%M:%S %p'
+
 
 def write_participants(fname):
     csv_path = Path(fname)
     contents = csv_path.read_text(encoding='utf_16_le')
     start_match = START_TIME_RE.search(contents)
-    ts_str = (str(pd.to_datetime(start_match.groups()[0]))
-            .replace(' ', '_')
-            .replace(':', '_'))
+    ts_str = (str(
+        datetime.strptime(start_match.groups()[0], DATE_FMT))
+        .replace(' ', '_')
+        .replace(':', '_'))
     out_path = Path(csv_path.parent / f'attend-{ts_str}.csv')
 
     lines = contents.splitlines()

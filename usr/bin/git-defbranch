@@ -1,0 +1,14 @@
+#!/bin/bash
+# https://www.danharper.me/blog/hub-default-branch
+
+branch_name=$1
+if [ -z "$branch_name" ]; then
+    branch_name=main
+fi
+remote_name=$2
+if [ -z "$remote_name" ]; then
+    remote_name=origin
+fi
+
+echo Setting default upstream branch to $remote_name/$branch_name
+git remote set-head $remote_name $branch_name
