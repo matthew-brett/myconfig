@@ -20,14 +20,18 @@ INSTRUCTORS = (
     'Anson Cheung')
 
 DATE_FMT = '%m/%d/%y, %I:%M:%S %p'
+DATE_FMT2 = '%m/%d/%y, %H:%M:%S'
 
 
 def write_participants(fname):
     csv_path = Path(fname)
     contents = csv_path.read_text(encoding='utf_16_le')
-    start_match = START_TIME_RE.search(contents)
-    ts_str = (str(
-        datetime.strptime(start_match.groups()[0], DATE_FMT))
+    start_match = START_TIME_RE.search(contents).groups()[0]
+    try:
+        dt = datetime.strptime(start_match, DATE_FMT)
+    except ValueError:
+        dt = datetime.strptime(start_match, DATE_FMT2)
+    ts_str = (str(dt)
         .replace(' ', '_')
         .replace(':', '_'))
     out_path = Path(csv_path.parent / f'attend-{ts_str}.csv')
