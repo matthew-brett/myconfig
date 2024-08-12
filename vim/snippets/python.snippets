@@ -1,36 +1,10 @@
 # numpy test module boilerplate
-snippet nptests
-	""" Testing ${1} module
-	"""
-
-	import numpy as np
-
-	from numpy.testing import (assert_almost_equal,
-	                           assert_array_equal)
-
-	from nose.tools import (assert_true, assert_false, assert_raises,
-	                        assert_equal, assert_not_equal)
 snippet pjoin
 	from os.path import join as pjoin, split as psplit, abspath, dirname
 snippet op
 	import os.path as op
-snippet nosey
-	from nose.tools import (assert_true, assert_false, assert_raises,
-	                        assert_equal, assert_not_equal)
 snippet subp
 	from subprocess import Popen, PIPE, check_call
-snippet anytests
-	""" Testing ${1} module
-	"""
-
-	from nose.tools import (assert_true, assert_false, assert_raises,
-	                        assert_equal, assert_not_equal)
-snippet nosetests
-	""" Testing ${1} module
-	"""
-
-	from nose.tools import (assert_true, assert_false, assert_raises,
-	                        assert_equal, assert_not_equal)
 snippet argparse
 	from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
@@ -39,9 +13,7 @@ snippet argparse
 	    parser = ArgumentParser(description=__doc__,  # Usage from docstring
 	                            formatter_class=RawDescriptionHelpFormatter)
 	    parser.add_argument('my_arg',
-	                        help='Somthing about my_arg')
-	    parser.add_argument('-a', '--an-option', action='store_true',
-	                        help='Some toggle option')
+	                        help='Something about my_arg')
 	    return parser
 
 
