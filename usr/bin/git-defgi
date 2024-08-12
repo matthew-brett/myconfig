@@ -7,4 +7,5 @@ cat << EOF > .gitignore
 __pycache__/
 *.pyc
 *.orig
+~*
 EOF
