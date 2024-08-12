@@ -85,3 +85,6 @@
 [submodule "vim/bundle/ultisnips"]
 	path = vim/bundle/ultisnips
 	url = https://github.com/SirVer/ultisnips.git
+[submodule "vim/bundle/vim-py2r"]
+	path = vim/bundle/vim-py2r
+	url = https://github.com/matthew-brett/vim-py2r.git
