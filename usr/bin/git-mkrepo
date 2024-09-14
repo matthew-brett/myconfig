@@ -1,0 +1,25 @@
+#!/bin/bash
+dir=$1
+if [ -z "$dir" ]; then
+    echo "Specify directory to create"
+    exit 1
+fi
+if [ -d "$dir" ]; then
+    echo "Directory exists"
+    exit 2
+fi
+git init $dir
+cat << EOF > $dir/README.md
+# $dir
+EOF
+cat << EOF > $dir/.gitignore
+*~
+*.swp
+.DS_Store
+.ipynb_checkpoints/
+__pycache__/
+*.pyc
+*.orig
+~*
+EOF
+(cd $dir && git add README.md .gitignore)
