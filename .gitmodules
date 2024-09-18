@@ -88,3 +88,12 @@
 [submodule "vim/bundle/vim-py2r"]
 	path = vim/bundle/vim-py2r
 	url = https://github.com/matthew-brett/vim-py2r.git
+[submodule "vim/bundle/markdown-preview.nvim"]
+	path = vim/bundle/markdown-preview.nvim
+	url = https://github.com/iamcco/markdown-preview.nvim
+[submodule "vim/bundle/vimwiki"]
+	path = vim/bundle/vimwiki
+	url = https://github.com/vimwiki/vimwiki
+[submodule "vim/bundle/panvimwiki"]
+	path = vim/bundle/panvimwiki
+	url = https://github.com/jfishe/panvimwiki.git

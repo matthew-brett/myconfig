@@ -280,3 +280,15 @@ if exists("g:goneovim")
   inoremap <D-v> <C-r>+
   cnoremap <D-v> <C-r>+
 endif
+
+" https://github.com/iamcco/markdown-preview.nvim
+" recognized filetypes
+" these filetypes will have MarkdownPreview... commands
+let g:mkdp_filetypes = ['markdown', 'pandoc', 'rmarkdown']
+
+" https://github.com/jeffmm/vim-roam
+let g:vimwiki_list = [{'path': '~/dev_trees/nietzsche-illness-notes/',
+            \ 'path_html': '~/dev_trees/nietzsche-illness-notes/_html',
+            \ 'syntax': 'markdown',
+            \ 'ext': 'md'}]
+let g:vimwiki_global_ext = 0
