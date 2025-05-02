@@ -199,10 +199,10 @@ endfunction
 command! CursorShow :call DoCursorShow()
 command! CursorBack :call DoCursorBack()
 
-nmap <silent> <leader>py :set ft=python<CR>
-nmap <silent> <leader>md :set ft=markdown<CR>
-nmap <silent> <leader>R :set ft=r<CR>
-nmap <silent> <leader>rmd :set ft=rmd<CR>
+nmap <silent> <leader>spy :set ft=python<CR>
+nmap <silent> <leader>smd :set ft=markdown<CR>
+nmap <silent> <leader>sr :set ft=r<CR>
+nmap <silent> <leader>srmd :set ft=rmarkdown<CR>
 
 " set nofoldenable    " disable folding in general.
 " https://vim.fandom.com/wiki/All_folds_open_when_opening_a_file
@@ -272,10 +272,6 @@ au BufNewFile,BufRead /private/**/gopass** setlocal noswapfile nobackup noundofi
 let g:UltiSnipsExpandTrigger="<tab>"
 " List all snippets for current filetype
 let g:UltiSnipsListSnippets=",sl"
-
-" Setting syntax
-nnoremap <silent> <leader>sp :set ft=python<CR>
-nnoremap <silent> <leader>sr :set ft=rmarkdown<CR>
 
 " add keymappings in goneovim only
 if exists("g:goneovim")

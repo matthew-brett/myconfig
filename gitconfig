@@ -13,6 +13,7 @@
     slog = log --oneline --graph
     suid = submodule update --init --recursive
     wdiff = diff --color-words
+    resetu = reset --hard '@{upstream}'
 [color]
     diff = auto
     status = true
@@ -47,7 +48,7 @@
     # https://stackoverflow.com/questions/16906161/git-push-hangs-when-pushing-to-github/54831252#54831252
     postBuffer = 524288000
 [filter "lfs"]
-	required = true
 	clean = git-lfs clean -- %f
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
+	required = true
