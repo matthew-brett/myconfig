@@ -96,7 +96,7 @@ PATH=$HOME/usr/bin:$HOME/usr/local/bin:$HOME/usr/local/sbin:$PATH
 PATH=/usr/local/sbin:/usr/sbin:/sbin:$PATH
 
 # Add the standard Python --user executable path
-PATH=$PY_USER_BIN:$PATH
+PATH=$PY_USER_BIN:$PATH:$HOME/.local/bin
 
 if [ -z "$START_SKIP_GEMS" ]; then
     # Add standard --user-install gem path
