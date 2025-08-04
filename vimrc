@@ -199,10 +199,10 @@ endfunction
 command! CursorShow :call DoCursorShow()
 command! CursorBack :call DoCursorBack()
 
-nmap <silent> <leader>spy :set ft=python<CR>
+nmap <silent> <leader>sp :set ft=python<CR>
 nmap <silent> <leader>smd :set ft=markdown<CR>
 nmap <silent> <leader>sr :set ft=r<CR>
-nmap <silent> <leader>srmd :set ft=rmarkdown<CR>
+nmap <silent> <leader>srm :set ft=rmarkdown<CR>
 
 " set nofoldenable    " disable folding in general.
 " https://vim.fandom.com/wiki/All_folds_open_when_opening_a_file
