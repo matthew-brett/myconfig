@@ -122,3 +122,44 @@ snippet pkh "Python cell with echo" b
 ${VISUAL}$0
 \`\`\`
 endsnippet
+
+snippet mnote "Myst note"
+<!-- #region -->
+\`\`\` {note}
+
+## ${VISUAL}$0
+
+
+\`\`\`
+<!-- #endregion -->
+
+endsnippet
+
+snippet mex "Myst exercise"
+<!-- #region -->
+\`\`\`{exercise-start}
+:label: ${VISUAL}$0
+:class: dropdown
+\`\`\`
+<!-- #endregion -->
+
+<!-- #region -->
+\`\`\`{exercise-end}
+\`\`\`
+<!-- #endregion -->
+
+endsnippet
+
+snippet mso "Myst solution"
+<!-- #region -->
+\`\`\`{solution-start} ${VISUAL}$0
+:class: dropdown
+\`\`\`
+<!-- #endregion -->
+
+<!-- #region -->
+\`\`\`{solution-end}
+\`\`\`
+<!-- #endregion -->
+
+endsnippet
