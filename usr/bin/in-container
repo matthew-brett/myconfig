@@ -1,6 +1,13 @@
 #!/bin/bash
 if [ -z $1 ]; then
-    echo Specify container name
+    echo Specify image name
     exit 1
+else
+    image=$1
 fi
-docker run -ti --rm -v $PWD:/io $@ /bin/bash
+shift
+if [ "$1" == 'x86' ]; then
+    extra_args="--platform=linux/amd64"
+    shift
+fi
+docker run -ti --rm -v $PWD:/io $@ $extra_args $image /bin/bash
