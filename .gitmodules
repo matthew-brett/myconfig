@@ -97,3 +97,12 @@
 [submodule "vim/bundle/panvimwiki"]
 	path = vim/bundle/panvimwiki
 	url = https://github.com/jfishe/panvimwiki.git
+[submodule "vim/bundle/csv"]
+	path = vim/bundle/csv
+	url = https://github.com/chrisbra/csv.vim
+[submodule "vim/bundle/vim-airline"]
+	path = vim/bundle/vim-airline
+	url = https://github.com/vim-airline/vim-airline
+[submodule "vim/bundle/fugitive"]
+	path = vim/bundle/fugitive
+	url = https://tpope.io/vim/fugitive
