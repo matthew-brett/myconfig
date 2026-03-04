@@ -292,3 +292,6 @@ let g:vimwiki_list = [{'path': '~/dev_trees/nietzsche-illness-notes/',
             \ 'syntax': 'markdown',
             \ 'ext': 'md'}]
 let g:vimwiki_global_ext = 0
+
+" Airline
+let g:airline#extensions#branch#enabled = 1

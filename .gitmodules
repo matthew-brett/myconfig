@@ -106,3 +106,6 @@
 [submodule "vim/bundle/fugitive"]
 	path = vim/bundle/fugitive
 	url = https://tpope.io/vim/fugitive
+[submodule "vim/bundle/vim-gh-line"]
+	path = vim/bundle/vim-gh-line
+	url = https://github.com/ruanyl/vim-gh-line

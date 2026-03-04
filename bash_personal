@@ -79,6 +79,10 @@ alias rmipynb='find . -name "*.ipynb" -exec rm {} \;'
 # tmux
 alias tma="tmux new -A -s 0"
 
+# clockify-cli
+alias clklin="clockify-cli clone last -i=0"
+alias clkout="clockify-cli out"
+
 # gopass
 GOPASS_PATH=$(gopass config mounts.path 2> /dev/null)
 alias cdgopass="cd $GOPASS_PATH"
