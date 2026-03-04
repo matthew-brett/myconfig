@@ -9,11 +9,16 @@
     st = status
     stat = status
     co = checkout
+    sw = switch
     lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)[%an]%Creset' --abbrev-commit --date=relative
     slog = log --oneline --graph
     suid = submodule update --init --recursive
     wdiff = diff --color-words
     resetu = reset --hard '@{upstream}'
+	wtadd = !/Users/mb312/.local/bin/wtadd.sh
+	wtremove = !/Users/mb312/.local/bin/wtremove.sh
+	wtclone = !/Users/mb312/.local/bin/wtclone.sh
+	wtlist = !/Users/mb312/.local/bin/wtlist.sh
 [color]
     diff = auto
     status = true
