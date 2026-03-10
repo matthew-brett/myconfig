@@ -1,0 +1,2 @@
+#!/bin/sh
+clockify-cli clone last -i=0

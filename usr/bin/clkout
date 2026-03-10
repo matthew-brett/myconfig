@@ -1,0 +1,2 @@
+#!/bin/sh
+clockify-cli out
