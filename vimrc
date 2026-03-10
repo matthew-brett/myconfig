@@ -210,6 +210,12 @@ nmap <silent> <leader>srm :set ft=rmarkdown<CR>
 autocmd Syntax python,rmarkdown,pandoc,markdown setlocal foldmethod=syntax
 autocmd Syntax python,rmarkdown,pandoc,markdown normal zR
 
+" Gemini's suggestion to turn off < matching in RMarkdown.
+augroup RMarkdownMatchPairs
+    autocmd!
+    autocmd FileType rmarkdown setlocal matchpairs-=<:>
+augroup END
+
 " https://medium.com/usevim/vim-101-virtual-editing-661c99c05847
 " Allow block mode definitions in empty space.
 set virtualedit=block
