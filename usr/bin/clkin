@@ -8,4 +8,4 @@ if [ -n "$1" ]; then
         shift
     fi
 fi
-echo clockify-cli clone last $extra $@
+clockify-cli clone last $extra $@
