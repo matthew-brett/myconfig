@@ -1,0 +1,6 @@
+try:
+    import rpy2
+except ImportError:
+    pass
+else:
+    %load_ext rpy2.ipython
