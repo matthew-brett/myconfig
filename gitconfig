@@ -15,10 +15,11 @@
     suid = submodule update --init --recursive
     wdiff = diff --color-words
     resetu = reset --hard '@{upstream}'
-	wtadd = !/Users/mb312/.local/bin/wtadd.sh
-	wtremove = !/Users/mb312/.local/bin/wtremove.sh
-	wtclone = !/Users/mb312/.local/bin/wtclone.sh
-	wtlist = !/Users/mb312/.local/bin/wtlist.sh
+    fall = fetch --all
+    wtadd = !wtadd.sh
+    wtremove = !wtremove.sh
+    wtclone = !wtclone.sh
+    wtlist = !wtlist.sh
 [color]
     diff = auto
     status = true
@@ -57,3 +58,5 @@
 	smudge = git-lfs smudge -- %f
 	process = git-lfs filter-process
 	required = true
+[rerere]
+	enabled = true
