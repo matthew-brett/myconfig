@@ -1,0 +1,11 @@
+#!/bin/sh
+# To resume last task: clkin last
+# To enter interactive mode: clkin
+extra=""
+if [ -n "$1" ]; then
+    if [ "$1" == "last" ]; then
+        extra="-i=0"
+        shift
+    fi
+fi
+echo clockify-cli clone last $extra $@
