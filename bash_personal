@@ -159,6 +159,12 @@ bind -m vi-insert "\C-a":beginning-of-line
 bind -m vi-insert "\C-e":end-of-line
 bind -m vi-insert "\C-k":kill-line
 
+# Go config
+if type -t go > /dev/null; then
+    PATH="$PATH:$(go env GOPATH)/bin"
+fi
+
+
 # Always export PATH
 export PATH
 
