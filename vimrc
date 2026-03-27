@@ -301,3 +301,8 @@ let g:vimwiki_global_ext = 0
 
 " Airline
 let g:airline#extensions#branch#enabled = 1
+
+" Clockify shortcuts
+command! Clkin terminal ++close clockify-cli clone last
+command! ClkinL !clockify-cli clone last -i=0
+command! Clkout !clockify-cli out
