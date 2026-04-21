@@ -2,8 +2,8 @@
     excludesfile = ~/.gitglobalignore
     editor = vim
 [user]
-	name = Matthew Brett
-	email = matthew.brett@gmail.com
+    name = Matthew Brett
+    email = matthew.brett@gmail.com
     signingkey = F6401040
 [alias]
     st = status
@@ -20,6 +20,7 @@
     wtremove = !wtremove.sh
     wtclone = !wtclone.sh
     wtlist = !wtlist.sh
+    rhup = reset --hard @{upstream}
 [color]
     diff = auto
     status = true
