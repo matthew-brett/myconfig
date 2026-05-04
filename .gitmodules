@@ -109,3 +109,6 @@
 [submodule "vim/bundle/vim-gh-line"]
 	path = vim/bundle/vim-gh-line
 	url = https://github.com/ruanyl/vim-gh-line
+[submodule "vim/bundle/vim-socrates"]
+	path = vim/bundle/vim-socrates
+	url = https://github.com/NI57721/vim-socrates

@@ -306,3 +306,6 @@ let g:airline#extensions#branch#enabled = 1
 command! Clkin terminal ++close clockify-cli clone last
 command! ClkinL !clockify-cli clone last -i=0
 command! Clkout !clockify-cli out
+
+" Greek keymap
+nnoremap <leader>sg <Plug>(socrates-greed)
