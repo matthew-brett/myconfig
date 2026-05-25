@@ -94,6 +94,7 @@ alias gop="gopass go"
 alias gos="gopass show -c"
 alias gog="gopass generate -c -s"
 alias goe="gopass edit"
+alias goc="gopass edit -c"
 
 # Add usr bins to PATH
 PATH=$HOME/usr/bin:$HOME/usr/local/bin:$HOME/usr/local/sbin:$PATH
