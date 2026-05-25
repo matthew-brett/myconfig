@@ -69,6 +69,11 @@
       glob: true
       path: quicksilver/*
       force: true
+    ~/Applications/with_gvim.app:
+      if: '[ `uname` = Darwin ]'
+      path: Applications/with_gvim.app
+      glob: true
+      force: true
     ~/.vimrc:
     ~/.vim:
       #~/.spacemacs : spacemacs/private/my_spacemacs
