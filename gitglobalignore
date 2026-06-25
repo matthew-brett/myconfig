@@ -1,2 +1,4 @@
 # Ignore tags files in vim extensions
 tags
+# pyenv virtualenv env name file.
+.python-version
