@@ -5,3 +5,4 @@ tags
 .netrwhist
 .DS_Store
 *.built
+.codewhale/
