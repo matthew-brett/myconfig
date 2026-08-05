@@ -207,8 +207,8 @@ nmap <silent> <leader>srm :set ft=rmarkdown<CR>
 " set nofoldenable    " disable folding in general.
 " https://vim.fandom.com/wiki/All_folds_open_when_opening_a_file
 " Disable folding for some files.
-autocmd Syntax python,rmarkdown,pandoc,markdown setlocal foldmethod=syntax
-autocmd Syntax python,rmarkdown,pandoc,markdown normal zR
+autocmd Syntax python,rmarkdown,markdown setlocal foldmethod=syntax
+autocmd Syntax python,rmarkdown,markdown normal zR
 
 " Gemini's suggestion to turn off < matching in RMarkdown.
 augroup RMarkdownMatchPairs
@@ -253,9 +253,9 @@ let g:rst_prefer_python_version = 3
 " Pyflakes
 let g:pyflakes_prefer_python_version = 3
 " pandoc
-let g:pandoc#modules#disabled = ["chdir"]
 " https://github.com/vim-pandoc/vim-pandoc/issues/23
-let g:pandoc#modules#disabled = ["folding"]
+" Disable vim-pandoc folding module.
+let g:pandoc#modules#disabled = ["chdir", "folding"]
 " Disable markdown folding
 " https://stackoverflow.com/questions/5017009/confusion-about-vim-folding-how-to-disable
 let g:vim_markdown_folding_disabled = 1
