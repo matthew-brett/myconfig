@@ -269,6 +269,14 @@ nnoremap <silent> <leader>ff :set guifont=Menlo\ Regular:h19<CR>
 nnoremap <silent> <leader>fs :set guifont=Menlo\ Regular:h19 \| :wincmd v \| :wincmd v \| :wincmd v \| wincmd =<CR>
 nnoremap <silent> <leader>ww :exe 1 "wincmd w"<CR>:vertical resize 80<CR>:wincmd l<CR>:vertical resize 89<CR>:wincmd l<CR>:vertical resize 80<CR>
 
+" Resize current window to 80 columns; sibling windows adjust automatically
+function! WindowWidth80(...) abort
+  execute 'vertical resize' (a:0 ? a:1 : 80)
+endfunction
+
+command! -nargs=? WindowWidth80 call WindowWidth80(<f-args>)
+nnoremap <silent> <leader>w8 :WindowWidth80<CR>
+
 " Avoid gopass secret leak
 " https://github.com/gopasspw/gopass/blob/master/docs/setup.md#securing-your-editor
 au BufNewFile,BufRead /dev/shm/gopass.* setlocal noswapfile nobackup noundofile
