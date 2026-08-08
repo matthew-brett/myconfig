@@ -1,0 +1,9 @@
+#!/bin/bash
+in_fname=$(ls -t1 ~/Downloads/* | head -1)
+if [ -z "$1" ]; then
+    out_fname=$(basename $in_fname)
+else
+    out_fname=$1
+fi
+echo Copying $in_fname to $out_fname
+cp "$in_fname" "$out_fname"
