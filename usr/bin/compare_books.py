@@ -5,7 +5,7 @@ Searches JustBooks (GBP, ship to the US, all matches combined), Alibris.com
 (non-digital, ship to the US, converted to GBP), Alibris.co.uk (non-digital,
 GBP shipping), eBay.com (ship to the US, converted to GBP), eBay.co.uk
 (GBP shipping), AwesomeBooks (GBP, free UK delivery) and ZVAB (EUR, shipping
-shown on the listing, converted to GBP). Writes a local page and serves it.
+to the United Kingdom, converted to GBP). Writes a local page and serves it.
 
 Requires Google Chrome and Playwright:
 
@@ -271,7 +271,7 @@ def wait_ready(page, predicate, timeout: float = 40) -> None:
         if predicate():
             return
         page.wait_for_timeout(400)
-    raise TimeoutError(f"Page did not become ready (last title: {last!r}).")
+    raise TimeoutError(f"Page did not become ready (last title: {last!r}, url: {page.url}).")
 
 
 def slug(text: str) -> str:
@@ -431,20 +431,50 @@ def display_heading(
     return heading, " · ".join(bits)
 
 
+def page_host(url: str) -> str:
+    return urllib.parse.urlparse(url).netloc.lower().removeprefix("www.")
+
+
 def goto(page, url: str) -> None:
+    """Open url, and retry when the current site cancels that navigation.
+
+    Awesome Books aborts the next load (net::ERR_ABORTED) and stays on its own
+    results. The following search then times out and reports the Awesome Books
+    title. A blank page in between lets the next site load.
+    """
+    want = page_host(url)
     last_error = None
-    for _ in range(3):
+    for attempt in range(3):
         try:
+            if attempt:
+                page.goto("about:blank", wait_until="domcontentloaded", timeout=15000)
+            before = page_host(page.url)
             page.goto(url, wait_until="domcontentloaded", timeout=60000)
             wait_out_challenge(page)
+            # A redirect to another host is fine. Still being on the previous
+            # site means that site cancelled the load.
+            got = page_host(page.url)
+            if want and got != want and (not got or got == before):
+                raise RuntimeError(f"Browser stayed on {page.url} instead of opening {url}")
             return
         except TimeoutError:
             raise
         except Exception as exc:
+            if want and page_host(page.url) == want:
+                try:
+                    wait_out_challenge(page)
+                except TimeoutError:
+                    raise
+                return
             last_error = exc
-            if "interrupted" not in str(exc).lower():
+            message = str(exc).lower()
+            retryable = any(
+                token in message
+                for token in ("interrupted", "err_aborted", "stayed on", "frame was detached")
+            )
+            if not retryable or attempt == 2:
                 raise
-            page.wait_for_timeout(1000)
+            page.wait_for_timeout(400)
     if last_error:
         raise last_error
 
@@ -717,7 +747,7 @@ def justbooks_match(
     title: str,
     year: int | None = None,
     isbn: str | None = None,
-    language: str = "EN",
+    language: str = "ANY",
 ) -> Match:
     label = "justbooks match"
     language_name = next((name for code, name in LANGUAGES.values() if code == language), language)
@@ -1117,7 +1147,7 @@ def zvab_search_url(
     title: str,
     year: int | None = None,
     isbn: str | None = None,
-    language: str = "EN",
+    language: str = "ANY",
 ) -> str:
     params = {"sortby": "17", "rollup": "off", "dym": "off"}
     if isbn:
@@ -1136,29 +1166,97 @@ def zvab_search_url(
     return "https://www.zvab.com/servlet/SearchResults?" + urllib.parse.urlencode(params)
 
 
+ZVAB_UK_PREFS = '{"modified":true,"curr":"EUR","shipdest":"GBR"}'
+ZVAB_UK_SHIP_RE = re.compile(
+    r"vereinigtes\s+k[oö]nigreich|united\s+kingdom|gro[sß]britannien|great\s+britain",
+    re.I,
+)
+ZVAB_NO_SHIP_RE = re.compile(
+    r"nicht\s+nach|wird\s+nicht|versand\s+nicht|does\s+not\s+ship|doesn'?t\s+ship|not\s+shipped",
+    re.I,
+)
+
+
+def zvab_set_uk_destination(page) -> None:
+    """Ask ZVAB to price shipping to the United Kingdom (GBR)."""
+    page.context.add_cookies(
+        [
+            {"name": "AbeShipTo", "value": "GBR", "domain": "www.zvab.com", "path": "/"},
+            {"name": "abe_prefs", "value": ZVAB_UK_PREFS, "domain": "www.zvab.com", "path": "/"},
+        ]
+    )
+
+
+def zvab_ships_to_uk(note: str) -> bool:
+    """True when the listing's shipping line is for delivery to the UK."""
+    if not note or ZVAB_NO_SHIP_RE.search(note):
+        return False
+    return ZVAB_UK_SHIP_RE.search(note) is not None
+
+
+def parse_zvab_amount(text: str) -> tuple[float, str] | None:
+    """Parse an EUR/GBP/USD amount. ZVAB writes German figures such as 'EUR 11,60'."""
+    cleaned = text.replace("\xa0", " ").replace("\u202f", " ")
+    match = re.search(
+        r"(?P<cur>EUR|GBP|USD|€|£|\$)\s*(?P<amt>[0-9]{1,3}(?:[.\s][0-9]{3})*(?:[.,][0-9]{2})|[0-9]+(?:[.,][0-9]{2})?)",
+        cleaned,
+        re.I,
+    )
+    if not match:
+        return None
+    raw = match.group("amt").replace(" ", "")
+    if "," in raw and "." in raw:
+        if raw.rfind(",") > raw.rfind("."):
+            raw = raw.replace(".", "").replace(",", ".")
+        else:
+            raw = raw.replace(",", "")
+    elif raw.count(",") == 1 and len(raw.split(",")[-1]) == 2:
+        raw = raw.replace(",", ".")
+    value = float(raw)
+    symbol = match.group("cur")
+    currency = {"€": "EUR", "£": "GBP", "$": "USD"}.get(symbol, symbol.upper())
+    if currency not in {"EUR", "GBP", "USD"}:
+        return None
+    return value, currency
+
+
 def zvab_listings(page) -> list[dict]:
     return page.evaluate(
-        """() => [...document.querySelectorAll('[data-srp-item-role="listing"]')].map(li => {
-          const basket = li.querySelector('[data-test-id^="add-to-basket"]');
-          const cost = basket?.getAttribute('data-csa-c-cost');
-          const ship = basket?.getAttribute('data-csa-c-shipping-cost');
-          const note = [...li.querySelectorAll('.VersoVisuallyHidden')]
-            .map(el => (el.textContent || '').replace(/\\s+/g, ' ').trim())
-            .find(text => text.startsWith('Versand')) || '';
-          return {
-            title: (li.querySelector('[data-test-id="listing-title"]')?.innerText || '').trim(),
-            author: (li.querySelector('[data-test-id="listing-author"]')?.innerText || '').trim(),
-            href: li.querySelector('[data-test-id="listing-title-link"]')?.href || '',
-            condition: (li.querySelector('[data-test-id="listing-condition"]')?.innerText || '').trim(),
-            seller: (li.querySelector('[data-test-id="listing-seller-link"]')?.innerText || '').trim(),
-            isbn: (li.querySelector('[data-test-id^="isbn-"]')?.innerText || '').trim(),
-            item: cost === null || cost === '' ? null : Number(cost),
-            ship: ship === null || ship === '' ? null : Number(ship),
-            currency: basket?.getAttribute('data-csa-c-purchase-currency') || '',
-            note,
-            text: (li.innerText || '').replace(/\\s+/g, ' ').slice(0, 900),
+        """() => {
+          const pageText = document.documentElement.outerHTML;
+          const ukDest = /shipdest[^A-Z]{0,12}GBR/.test(pageText)
+            || /vereinigtes\\s+k[oö]nigreich|united\\s+kingdom/i.test(document.body?.innerText || '');
+          const read = (li, closest) => {
+            const basket = li.querySelector('[data-test-id^="add-to-basket"]');
+            const cost = basket ? basket.getAttribute('data-csa-c-cost') : null;
+            const ship = basket ? basket.getAttribute('data-csa-c-shipping-cost') : null;
+            const hidden = [...li.querySelectorAll('.VersoVisuallyHidden')]
+              .map(el => (el.textContent || '').replace(/\\s+/g, ' ').trim())
+              .find(text => text.startsWith('Versand')) || '';
+            const label = li.querySelector('a[aria-label]')?.getAttribute('aria-label') || '';
+            const sellerMatch = label.match(/(?:zum Verkauf durch|sold by)\\s+(.+)$/i);
+            const sellerLink = (li.querySelector('[data-test-id="listing-seller-link"]')?.innerText || '').trim();
+            return {
+              title: (li.querySelector('[data-test-id="listing-title"]')?.innerText || '').trim(),
+              author: (li.querySelector('[data-test-id="listing-author"]')?.innerText || '').trim(),
+              href: li.querySelector('a[href*="/bd"]')?.href || li.querySelector('[data-test-id="listing-title-link"]')?.href || '',
+              condition: (li.querySelector('[data-test-id="listing-condition"]')?.innerText || li.querySelector('[aria-label="Gebraucht"], [aria-label="Neu"]')?.getAttribute('aria-label') || '').trim(),
+              seller: sellerLink || (sellerMatch ? sellerMatch[1].trim() : ''),
+              isbn: (li.querySelector('[data-test-id^="isbn-"]')?.innerText || '').trim(),
+              item: cost === null || cost === '' ? null : Number(cost),
+              ship: ship === null || ship === '' ? null : Number(ship),
+              currency: basket?.getAttribute('data-csa-c-purchase-currency') || '',
+              priceText: (li.querySelector('[data-test-id="listing-price"]')?.innerText || '').replace(/\\s+/g, ' ').trim(),
+              shipText: (li.querySelector('[data-test-id="listing-shipping"], [data-test-id^="item-shipping-price"]')?.innerText || '').replace(/\\s+/g, ' ').trim(),
+              note: hidden || (closest && ukDest ? 'Versandziel: Vereinigtes Königreich' : ''),
+              closest,
+              text: (li.innerText || '').replace(/\\s+/g, ' ').slice(0, 900),
+            };
           };
-        })"""
+          const full = [...document.querySelectorAll('[data-srp-item-role="listing"]')].map(li => read(li, false));
+          const close = [...document.querySelectorAll('[data-test-id="closest-match-item"]')].map(li => read(li, true));
+          return full.concat(close);
+        }"""
     )
 
 
@@ -1171,8 +1269,8 @@ def zvab_match(
     rate_note: str,
     year: int | None = None,
     isbn: str | None = None,
-    language: str = "EN",
-    language_name: str = "English",
+    language: str = "ANY",
+    language_name: str = "any language",
 ) -> Match:
     label = "zvab.com match"
     search_url = zvab_search_url(author, title, year, isbn, language)
@@ -1180,12 +1278,16 @@ def zvab_match(
     author_tokens = significant_tokens(author)
     best = None
     try:
+        zvab_set_uk_destination(page)
         goto(page, search_url)
         for _ in range(4):
             wait_ready(
                 page,
-                lambda: page.locator('[data-srp-item-role="listing"]').count() > 0
-                or "ergebnis" in page.inner_text("body").lower(),
+                lambda: page.locator(
+                    '[data-srp-item-role="listing"], [data-test-id="closest-match-item"]'
+                ).count()
+                > 0
+                or page.locator("text=/Keine genauen Treffer|Keine Ergebnisse/i").count() > 0,
                 timeout=40,
             )
             page.wait_for_timeout(600)
@@ -1219,8 +1321,23 @@ def zvab_match(
                 ship = card.get("ship")
                 currency = card.get("currency") or ""
                 if item is None or ship is None or currency not in {"EUR", "GBP", "USD"}:
+                    parsed_item = parse_zvab_amount(card.get("priceText") or "")
+                    ship_line = card.get("shipText") or ""
+                    if parsed_item is None:
+                        continue
+                    item, currency = parsed_item
+                    if re.search(r"gratis|kostenlos|free", ship_line, re.I):
+                        ship = 0.0
+                    else:
+                        parsed_ship = parse_zvab_amount(ship_line)
+                        if parsed_ship is None or parsed_ship[1] != currency:
+                            continue
+                        ship = parsed_ship[0]
+                if item is None or ship is None or currency not in {"EUR", "GBP", "USD"}:
                     continue
                 if item != item or ship != ship:
+                    continue
+                if not zvab_ships_to_uk(card.get("note") or ""):
                     continue
                 total = float(item) + float(ship)
                 gbp = gbp_of(total, currency, usd_rate, eur_rate)
@@ -1236,6 +1353,7 @@ def zvab_match(
                         "condition": card.get("condition") or "",
                         "seller": card.get("seller") or "",
                         "note": card.get("note") or "",
+                        "closest": bool(card.get("closest")),
                     }
             if best is not None:
                 break
@@ -1249,7 +1367,11 @@ def zvab_match(
         return Match(label=label, search_url=search_url, error=str(exc))
 
     if best is None:
-        return Match(label=label, search_url=search_url, error="No priced copy matched the title.")
+        return Match(
+            label=label,
+            search_url=search_url,
+            error="No priced copy that ships to the United Kingdom matched the title.",
+        )
     native = money_text(best["total"], best["currency"])
     if best["currency"] == "EUR":
         price_text = (
@@ -1263,8 +1385,13 @@ def zvab_match(
         )
     else:
         price_text = f"£{best['gbp']:.2f}"
-    ship_text = "free shipping" if best["ship"] == 0 else f"shipping {money_text(best['ship'], best['currency'])}"
+    if best["ship"] == 0:
+        ship_text = "free shipping to the United Kingdom"
+    else:
+        ship_text = f"shipping {money_text(best['ship'], best['currency'])} to the United Kingdom"
     extra = ""
+    if best.get("closest"):
+        extra += " Closest match; ZVAB had no exact hit for this search."
     if best.get("note"):
         extra += f" {best['note']}."
     if year is not None:
@@ -1295,7 +1422,7 @@ def render_page(
     rate_note: str,
     year: int | None = None,
     isbn: str | None = None,
-    language_name: str = "English",
+    language_name: str = "any language",
     eur_rate: float | None = None,
     eur_note: str = "",
 ) -> str:
@@ -1356,7 +1483,7 @@ def render_page(
     Alibris totals add the standard shipping shown on the copy. Digital formats are skipped.
     eBay is the cheapest Buy It Now in Books &amp; Magazines whose title contains the author and the title, including delivery to the United States (ebay.com) or the United Kingdom (ebay.co.uk).
     AwesomeBooks is British pounds with free UK delivery.
-    ZVAB is the cheapest listing by total price, in euros, including the shipping shown on the listing.
+    ZVAB is the cheapest listing by total price that ships to the United Kingdom, in euros, including that shipping.
     {f'Publication year filter: {year}. ' if year is not None else ''}{f'ISBN filter: {isbn}.' if isbn else ''}</p>
   </footer>
 </main>
@@ -1406,8 +1533,8 @@ def main() -> None:
     )
     parser.add_argument(
         "--language",
-        default="English",
-        help="Language of the book on JustBooks and ZVAB (default: English). "
+        default="any",
+        help="Language of the book on JustBooks and ZVAB (default: any). "
         "English, German, French, Spanish, Italian, Dutch, or any "
         "(codes EN, DE, FR, ES, IT, NL, ANY). Alibris, eBay, and AwesomeBooks do not filter by language.",
     )
