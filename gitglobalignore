@@ -2,3 +2,5 @@
 tags
 # pyenv virtualenv env name file.
 .python-version
+
+**/.claude/.cc-writes/
