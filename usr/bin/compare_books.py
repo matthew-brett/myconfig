@@ -17,10 +17,12 @@ Requires Google Chrome and Playwright:
     python3 compare_books.py --isbn 978-0-8028-4344-9
 
 Uses a persistent Chrome profile (~/.cache/bookcmp-chrome) so captcha clearance
-survives between runs. On each run it opens JustBooks and Alibris in separate
-tabs; solve any challenges there, then press Enter to search. Pass
---skip-warmup when clearance is still fresh. --isbn alone is enough, and so is
---title; --author is optional. Dashes and spaces in the ISBN are optional.
+survives between runs. On each run it opens the search page for JustBooks, both
+Alibris sites and AwesomeBooks in separate tabs, plus a warm-up tab listing each
+site with its state; solve any challenges there and press "Search all shops" on
+that tab (no console needed). Pass --skip-warmup when clearance is still fresh.
+--isbn alone is enough, and so is --title; --author is optional. Dashes and
+spaces in the ISBN are optional.
 
 Written by Cursor, Auto model, late September / early October 2026.  Copyright
 therefore unknown.  Please do not re-use.
@@ -51,8 +53,14 @@ WARMUP_SITES = [
     ("JustBooks", "https://www.justbooks.co.uk/"),
     ("Alibris.com", "https://www.alibris.com/"),
     ("Alibris.co.uk", "https://www.alibris.co.uk/"),
+    ("AwesomeBooks", "https://www.awesomebooks.com/"),
 ]
+# Sites behind Cloudflare, where no check on screen can still mean no clearance cookie.
+CLOUDFLARE_SITES = {"Alibris.com", "Alibris.co.uk", "AwesomeBooks"}
 CHALLENGE_WAIT_S = 300
+CONTROL_POLL_S = 0.5
+# Counts bot checks cleared during a run, so a step that a check interrupted can start again.
+CHALLENGES_SOLVED = 0
 
 CHROME_CANDIDATES = [
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -201,23 +209,23 @@ def money_text(amount: float, currency: str) -> str:
     return f"{symbol}{amount:.2f}"
 
 
-def challenge_title(title: str) -> bool:
-    lowered = title.lower().strip()
-    markers = (
-        "just a moment",
-        "attention required",
-        "verify you are human",
-        "security check",
-        "captcha",
-        "are you a human",
-    )
-    return lowered.startswith("checking") or any(marker in lowered for marker in markers)
+CHALLENGE_TEXT_RE = re.compile(
+    r"just a moment|checking your browser|verifying you are human|verify you are (a )?human"
+    r"|attention required|enable javascript and cookies|are you a human|press and hold"
+    r"|cf-browser-verification|captcha|security check",
+    re.I,
+)
+
+
+def challenge_text(text: str) -> bool:
+    """True for a challenge *title* (page text is matched separately, more narrowly)."""
+    return bool(CHALLENGE_TEXT_RE.search(text or ""))
 
 
 def page_looks_challenged(page) -> bool:
     """True when a bot check / captcha is likely still on screen (title alone is not enough)."""
     try:
-        if challenge_title(page.title()):
+        if challenge_text(page.title()):
             return True
     except Exception:
         pass
@@ -225,12 +233,19 @@ def page_looks_challenged(page) -> bool:
         return bool(
             page.evaluate(
                 """() => {
-                  const text = ((document.title || '') + ' ' + (document.body?.innerText || '')).slice(0, 4000).toLowerCase();
-                  if (/just a moment|verify you are (a )?human|attention required|checking your browser|enable javascript and cookies|cf-browser-verification|challenge-platform|press and hold|are you a human/.test(text))
+                  if (window._cf_chl_opt) return true;
+                  if (document.querySelector(
+                    '#challenge-form, #challenge-running, #challenge-stage, #cf-challenge-running, #px-captcha'
+                  )) return true;
+                  const text = ((document.title || '') + ' ' + (document.body?.innerText || '')).slice(0, 4000);
+                  if (/just a moment|checking your browser|verifying you are human|verify you are (a )?human|attention required|enable javascript and cookies|are you a human|press and hold/i.test(text))
                     return true;
-                  return !!document.querySelector(
-                    '#challenge-running, #challenge-stage, #cf-challenge-running, #px-captcha, .cf-turnstile, iframe[src*="challenges.cloudflare.com"], iframe[src*="turnstile"], iframe[src*="captcha"]'
+                  // A captcha widget on an otherwise short page is a check; the same widget on a
+                  // full shop page is just a form and must not block the run.
+                  const weak = !!document.querySelector(
+                    'iframe[src*="challenges.cloudflare.com"], iframe[src*="turnstile"], iframe[src*="captcha"], .cf-turnstile'
                   );
+                  return weak && (document.body?.innerText || '').trim().length < 1500;
                 }"""
             )
         )
@@ -239,10 +254,24 @@ def page_looks_challenged(page) -> bool:
 
 
 def wait_out_challenge(page, timeout: float = CHALLENGE_WAIT_S) -> None:
-    """Pause while Cloudflare / bot checks are showing so they can be solved in Chrome."""
+    """Pause while Cloudflare / bot checks are showing so they can be solved in Chrome.
+
+    The tab is brought to the front first: a check that lands during the search
+    would otherwise sit in the background, unseen, until it timed out.
+    """
+    global CHALLENGES_SOLVED
     if not page_looks_challenged(page):
         return
-    print("Challenge page open — solve it in Chrome if needed…", flush=True)
+    CHALLENGES_SOLVED += 1
+    try:
+        page.bring_to_front()
+    except Exception:
+        pass
+    host = page_host(page.url) or "the site"
+    print(
+        f"Bot check on {host} — solve it in Chrome; waiting up to {int(timeout)}s…",
+        flush=True,
+    )
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
@@ -253,7 +282,7 @@ def wait_out_challenge(page, timeout: float = CHALLENGE_WAIT_S) -> None:
             page.wait_for_timeout(1000)
             continue
         page.wait_for_timeout(1000)
-    raise TimeoutError("Challenge page did not clear in time.")
+    raise TimeoutError(f"Bot check on {host} did not clear in time.")
 
 
 def wait_ready(page, predicate, timeout: float = 40) -> None:
@@ -441,6 +470,10 @@ def goto(page, url: str) -> None:
     Awesome Books aborts the next load (net::ERR_ABORTED) and stays on its own
     results. The following search then times out and reports the Awesome Books
     title. A blank page in between lets the next site load.
+
+    A bot check replaces the page wholesale, which makes the pending navigation
+    fail too. That is not an error: the check is left on screen for the person
+    to solve, and the navigation is repeated afterwards.
     """
     want = page_host(url)
     last_error = None
@@ -449,7 +482,12 @@ def goto(page, url: str) -> None:
             if attempt:
                 page.goto("about:blank", wait_until="domcontentloaded", timeout=15000)
             before = page_host(page.url)
-            page.goto(url, wait_until="domcontentloaded", timeout=60000)
+            try:
+                page.goto(url, wait_until="domcontentloaded", timeout=60000)
+            except Exception as exc:
+                if not page_looks_challenged(page):
+                    raise
+                last_error = exc
             wait_out_challenge(page)
             # A redirect to another host is fine. Still being on the previous
             # site means that site cancelled the load.
@@ -457,15 +495,11 @@ def goto(page, url: str) -> None:
             if want and got != want and (not got or got == before):
                 raise RuntimeError(f"Browser stayed on {page.url} instead of opening {url}")
             return
-        except TimeoutError:
-            raise
         except Exception as exc:
-            if want and page_host(page.url) == want:
-                try:
-                    wait_out_challenge(page)
-                except TimeoutError:
-                    raise
-                return
+            if page_looks_challenged(page):
+                wait_out_challenge(page)
+                if not want or page_host(page.url) == want:
+                    return
             last_error = exc
             message = str(exc).lower()
             retryable = any(
@@ -479,34 +513,216 @@ def goto(page, url: str) -> None:
         raise last_error
 
 
-def warmup(page) -> None:
-    """Open each tricky site in its own tab so a slow JustBooks captcha is not replaced."""
+CONTROL_PAGE_HTML = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Book compare — warm up</title>
+<style>
+  body { margin: 0; font: 16px/1.45 "Iowan Old Style", Palatino, Georgia, serif; background: #f4f0e6; color: #1c1915; }
+  main { max-width: 680px; margin: 0 auto; padding: 40px 22px 64px; }
+  h1 { font-size: 1.6rem; margin: 0 0 6px; }
+  .lede { color: #5c564c; margin-top: 0; }
+  ul { list-style: none; margin: 22px 0; padding: 0; }
+  li { display: flex; align-items: center; gap: 10px; background: #fffdf8; border: 1px solid #ddd4c4; border-radius: 10px; padding: 10px 14px; margin: 8px 0; }
+  li .name { font-weight: 600; }
+  li .note { color: #5c564c; font-size: 0.85rem; flex: 1; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #c9c0ad; flex: none; }
+  .dot.check { background: #b8791f; }
+  .dot.ready { background: #2f6f4e; }
+  .dot.loading { background: #9a9a9a; }
+  .dot.failed { background: #8a2b2b; }
+  .dot.closed { background: #6b6257; }
+  button { font: inherit; border-radius: 999px; border: 1px solid #2f6f4e; background: #2f6f4e; color: #fffdf8; padding: 10px 22px; cursor: pointer; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.secondary { background: transparent; color: #2f6f4e; border-color: #b9c9bd; margin-left: 10px; font-size: 0.88rem; padding: 8px 16px; }
+  .status { margin: 18px 0 10px; font-weight: 600; }
+  .hint { color: #5c564c; font-size: 0.88rem; }
+  body.started ul, body.started .status { opacity: 0.5; }
+  body.started button { pointer-events: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Warm-up</h1>
+  <p class="lede">Solve any bot checks in the other tabs. Start the search from this page — no console needed.</p>
+  <ul id="sites"></ul>
+  <p class="status" id="status">Checking…</p>
+  <button id="go" disabled>Search all shops</button>
+  <button id="force" class="secondary">Search anyway</button>
+  <p class="hint">These buttons send nothing over the network; they only tell the waiting script to carry on.</p>
+</main>
+<script>
+window.__go = false;
+window.__focus = "";
+const LABELS = {check: "bot check showing", loading: "loading…", ready: "ready", failed: "did not load", closed: "tab closed"};
+function render(state) {
+  const sites = state.sites || [];
+  const list = document.getElementById("sites");
+  list.innerHTML = "";
+  for (const site of sites) {
+    const li = document.createElement("li");
+    const dot = document.createElement("span");
+    dot.className = "dot " + site.state;
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = site.name;
+    const note = document.createElement("span");
+    note.className = "note";
+    note.textContent = site.note || LABELS[site.state] || site.state;
+    li.append(dot, name, note);
+    if (site.state !== "ready") {
+      const show = document.createElement("button");
+      show.className = "secondary";
+      show.textContent = "Show tab";
+      show.onclick = () => { window.__focus = site.name; };
+      li.append(show);
+    }
+    list.append(li);
+  }
+  const waiting = sites.filter(site => site.state !== "ready").map(site => site.name);
+  const ready = sites.length > 0 && waiting.length === 0;
+  document.getElementById("go").disabled = !ready;
+  document.getElementById("status").textContent = ready
+    ? "Everything looks clear."
+    : "Waiting for: " + (waiting.join(", ") || "the sites to load");
+}
+window.__update = render;
+document.getElementById("go").onclick = () => {
+  window.__go = true;
+  document.body.classList.add("started");
+};
+document.getElementById("force").onclick = () => {
+  window.__go = true;
+  document.body.classList.add("started");
+};
+</script>
+</body>
+</html>
+"""
+
+
+def has_clearance_cookie(context, url: str) -> bool:
+    """True when Cloudflare's clearance cookie is already stored for url's host."""
+    try:
+        return any(cookie.get("name") == "cf_clearance" for cookie in context.cookies([url]))
+    except Exception:
+        return False
+
+
+def warmup_state(tab, clearance: bool | None = None) -> tuple[str, str]:
+    """Return (state, note) for one warm-up tab: ready, check, loading, failed or closed."""
+    try:
+        if tab.is_closed():
+            return "closed", ""
+        title = tab.title() or ""
+    except Exception:
+        return "closed", ""
+    if page_looks_challenged(tab):
+        return "check", ""
+    if not title:
+        return "loading", ""
+    try:
+        if tab.evaluate("() => !!document.querySelector('#main-frame-error, .error-code')"):
+            return "failed", "Chrome could not load it"
+    except Exception:
+        pass
+    if clearance is False:
+        return "ready", "no cf_clearance cookie yet — its search may still be checked"
+    return "ready", ""
+
+
+def control_update(control, sites: list[dict]) -> None:
+    try:
+        control.evaluate("(state) => window.__update(state)", {"sites": sites})
+    except Exception:
+        pass
+
+
+def warmup(page, probes: dict[str, str] | None = None) -> None:
+    """Open each tricky site in its own tab and wait, in the browser, for the all-clear.
+
+    Each tab loads the URL the search will really use (probes), not just the
+    home page: Cloudflare clears one URL at a time, so a home page that is free
+    of checks proves nothing about the search page that follows.
+    """
+    probes = probes or {}
     print("Warming up sites — each opens in its own tab so challenges are not replaced…", flush=True)
     context = page.context
-    # Reuse the launch tab for the first site so Chrome does not keep an extra blank page.
-    tabs = []
-    extra_tabs = []
+    tabs: list[tuple[str, object]] = []
     for index, (name, url) in enumerate(WARMUP_SITES):
-        print(f"  Opening {name}…", flush=True)
+        target = probes.get(name) or url
         tab = page if index == 0 else context.new_page()
-        if index > 0:
-            extra_tabs.append(tab)
         tabs.append((name, tab))
+        print(f"  Opening {name}…", flush=True)
         try:
-            tab.goto(url, wait_until="domcontentloaded", timeout=60000)
-            tab.bring_to_front()
+            tab.goto(target, wait_until="domcontentloaded", timeout=60000)
         except Exception as exc:
             print(f"  {name} failed to open: {exc}", flush=True)
-    if tabs:
+
+    control = None
+    try:
+        control = context.new_page()
+        control.set_content(CONTROL_PAGE_HTML)
+        control.bring_to_front()
+    except Exception as exc:
+        print(f"Could not open the warm-up page in Chrome ({exc}); using the console instead.", flush=True)
+        if control is not None:
+            try:
+                control.close()
+            except Exception:
+                pass
+        control = None
+
+    if control is None:
+        input("Press Enter when all challenges are cleared and you're ready to search… ")
+    else:
+        print('Solve any challenges in Chrome, then press "Search all shops" on the warm-up tab.', flush=True)
+        site_urls = dict(WARMUP_SITES)
+        sites: list[dict] = []
+        while True:
+            sites = []
+            for name, tab in tabs:
+                url = probes.get(name) or site_urls[name]
+                clearance = has_clearance_cookie(context, url) if name in CLOUDFLARE_SITES else None
+                state, note = warmup_state(tab, clearance)
+                sites.append({"name": name, "state": state, "note": note})
+            control_update(control, sites)
+            try:
+                flags = control.evaluate("() => ({go: !!window.__go, focus: window.__focus || ''})")
+            except Exception:
+                raise SystemExit("The warm-up tab was closed — nothing has been searched. Run again to start over.")
+            wanted = flags.get("focus") or ""
+            if wanted:
+                for name, tab in tabs:
+                    if name == wanted:
+                        try:
+                            tab.bring_to_front()
+                        except Exception:
+                            pass
+                try:
+                    control.evaluate("() => { window.__focus = ''; }")
+                except Exception:
+                    pass
+            if flags.get("go"):
+                break
+            if all(site["state"] == "closed" for site in sites):
+                raise SystemExit("All warm-up tabs were closed — nothing has been searched.")
+            time.sleep(CONTROL_POLL_S)
+        waiting = [site["name"] for site in sites if site["state"] != "ready"]
+        if waiting:
+            print(f"Starting with {', '.join(waiting)} not confirmed clear.", flush=True)
+
+    for _, tab in tabs:
+        if tab is not page:
+            try:
+                tab.close()
+            except Exception:
+                pass
+    if control is not None:
         try:
-            tabs[0][1].bring_to_front()
-        except Exception:
-            pass
-    print("Solve any captchas in those tabs (JustBooks is often slow).", flush=True)
-    input("Press Enter when all challenges are cleared and you're ready to search… ")
-    for tab in extra_tabs:
-        try:
-            tab.close()
+            control.close()
         except Exception:
             pass
     try:
@@ -593,6 +809,26 @@ def shipping_amount(ship_text: str) -> tuple[float, str] | None:
     return min(amounts, key=lambda item: item[0])
 
 
+def alibris_open_search(page, domain: str, search_url: str, currency_code: str) -> None:
+    """Open an Alibris search in the wanted currency, restarting if a bot check cuts in.
+
+    The currency change is a separate portal navigation. A check that lands
+    between the two requests leaves the pair half done (search page gone, or
+    currency reverted), so start both again once the check has been solved.
+    """
+    for attempt in range(3):
+        before = CHALLENGES_SOLVED
+        goto(page, search_url)
+        wait_ready(page, lambda: "alibris" in page.title().lower() or page.locator("h2 a").count() > 0)
+        set_alibris_currency(page, domain, currency_code)
+        goto(page, search_url)
+        wait_ready(page, lambda: page.locator("h2 a").count() > 0 or "matching" in page.inner_text("body").lower())
+        if CHALLENGES_SOLVED == before:
+            return
+        print(f"  Bot check cleared on {domain}; repeating the search.", flush=True)
+    raise RuntimeError("Alibris kept interrupting with bot checks.")
+
+
 def alibris_match(
     page,
     domain: str,
@@ -607,11 +843,7 @@ def alibris_match(
     label = f"{domain} match"
     search_url = alibris_search_url(domain, author, title, year, isbn)
     try:
-        goto(page, search_url)
-        wait_ready(page, lambda: "alibris" in page.title().lower() or page.locator("h2 a").count() > 0)
-        set_alibris_currency(page, domain, currency_code)
-        goto(page, search_url)
-        wait_ready(page, lambda: page.locator("h2 a").count() > 0 or "matching" in page.inner_text("body").lower())
+        alibris_open_search(page, domain, search_url, currency_code)
         page.wait_for_timeout(800)
         body = page.inner_text("body")
         if currency_code == "USD" and "$" not in body:
@@ -741,16 +973,13 @@ def alibris_match(
     )
 
 
-def justbooks_match(
-    page,
+def justbooks_search_url(
     author: str,
     title: str,
     year: int | None = None,
     isbn: str | None = None,
     language: str = "ANY",
-) -> Match:
-    label = "justbooks match"
-    language_name = next((name for code, name in LANGUAGES.values() if code == language), language)
+) -> str:
     params = {
         "author": author,
         "title": title,
@@ -771,7 +1000,20 @@ def justbooks_match(
     if year is not None:
         params["publicationMinYear"] = str(year)
         params["publicationMaxYear"] = str(year)
-    search_url = "https://www.justbooks.co.uk/search?" + urllib.parse.urlencode(params)
+    return "https://www.justbooks.co.uk/search?" + urllib.parse.urlencode(params)
+
+
+def justbooks_match(
+    page,
+    author: str,
+    title: str,
+    year: int | None = None,
+    isbn: str | None = None,
+    language: str = "ANY",
+) -> Match:
+    label = "justbooks match"
+    language_name = next((name for code, name in LANGUAGES.values() if code == language), language)
+    search_url = justbooks_search_url(author, title, year, isbn, language)
     try:
         goto(page, search_url)
         offers = []
@@ -1020,6 +1262,23 @@ def ebay_match(
     )
 
 
+def awesomebooks_search_url(
+    author: str,
+    title: str,
+    year: int | None = None,
+    isbn: str | None = None,
+) -> str:
+    if isbn:
+        query = isbn
+    else:
+        query = f"{author} {title}".strip()
+        if year is not None:
+            query = f"{query} {year}"
+    return "https://www.awesomebooks.com/search/advanced?" + urllib.parse.urlencode(
+        {"q": query, "sortBy": "price_asc"}
+    )
+
+
 def awesomebooks_match(
     page,
     author: str,
@@ -1034,9 +1293,7 @@ def awesomebooks_match(
         query = f"{author} {title}".strip()
         if year is not None:
             query = f"{query} {year}"
-    search_url = "https://www.awesomebooks.com/search/advanced?" + urllib.parse.urlencode(
-        {"q": query, "sortBy": "price_asc"}
-    )
+    search_url = awesomebooks_search_url(author, title, year, isbn)
     tokens = significant_tokens(title) or ([] if isbn else significant_tokens(query))
     author_tokens = significant_tokens(author)
     try:
@@ -1549,7 +1806,7 @@ def main() -> None:
         "--skip-warmup",
         action=argparse.BooleanOptionalAction,
         default=False,
-        help="Skip opening JustBooks/Alibris before searching (use when clearance is still fresh). "
+        help="Skip opening JustBooks/Alibris/AwesomeBooks before searching (use when clearance is still fresh). "
         "Use --no-skip-warmup to force the warmup tabs (default).",
     )
     args = parser.parse_args()
@@ -1590,9 +1847,19 @@ def main() -> None:
             browser = playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{debug_port}")
             context = browser.contexts[0]
             page = context.pages[0] if context.pages else context.new_page()
-            if not args.skip_warmup:
-                warmup(page)
             year = args.year
+            if not args.skip_warmup:
+                # Warm up the URLs the search will really use: Cloudflare clears one
+                # URL at a time, so a home page without a check proves nothing.
+                warmup(
+                    page,
+                    {
+                        "JustBooks": justbooks_search_url(author, title, year, isbn, language),
+                        "Alibris.com": alibris_search_url("alibris.com", author, title, year, isbn),
+                        "Alibris.co.uk": alibris_search_url("alibris.co.uk", author, title, year, isbn),
+                        "AwesomeBooks": awesomebooks_search_url(author, title, year, isbn),
+                    },
+                )
             if isbn:
                 print(f"ISBN: {isbn}", flush=True)
             if year is not None:
