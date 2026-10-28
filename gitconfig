@@ -21,6 +21,7 @@
     wtclone = !wtclone.sh
     wtlist = !wtlist.sh
     rhup = reset --hard @{upstream}
+    adiff = !GIT_EXTERNAL_DIFF=\"git-annex diffdriver --text --\" git diff
 [color]
     diff = auto
     status = true
