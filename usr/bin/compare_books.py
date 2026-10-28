@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Compare the cheapest shipped copy of a book across several shops.
 
-Searches JustBooks (GBP, ship to the US, all matches combined), Alibris.com
+Searches JustBooks (GBP, all matches combined, priced to both the UK and the US
+with the cheaper kept; --ship-to GB or US forces one, with booklooker.de offers
+priced at the seller's own shipping rate), Alibris.com
 (non-digital, ship to the US, converted to GBP), Alibris.co.uk (non-digital,
 GBP shipping), eBay.com (ship to the US, converted to GBP), eBay.co.uk
 (GBP shipping), AwesomeBooks (GBP, free UK delivery) and ZVAB (EUR, shipping
@@ -15,14 +17,16 @@ Requires Google Chrome and Playwright:
     python3 compare_books.py --author Hengel --title "Die Evangelien" --language German
     python3 compare_books.py --title "Der kleine Hobbit" --language German
     python3 compare_books.py --isbn 978-0-8028-4344-9
+    python3 compare_books.py --serve        # local page; search from the browser
 
 Uses a persistent Chrome profile (~/.cache/bookcmp-chrome) so captcha clearance
 survives between runs. On each run it opens the search page for JustBooks, both
 Alibris sites and AwesomeBooks in separate tabs, plus a warm-up tab listing each
 site with its state; solve any challenges there and press "Search all shops" on
-that tab (no console needed). Pass --skip-warmup when clearance is still fresh.
---isbn alone is enough, and so is --title; --author is optional. Dashes and
-spaces in the ISBN are optional.
+that tab (no console needed). With --serve the warm-up and the results live on a
+local page instead. Pass --skip-warmup when clearance is still fresh. --isbn
+alone is enough, and so is --title; --author is optional. Dashes and spaces in
+the ISBN are optional.
 
 Written by Cursor, Auto model, late September / early October 2026.  Copyright
 therefore unknown.  Please do not re-use.
@@ -34,18 +38,21 @@ import argparse
 import html
 import json
 import os
+import queue
 import re
 import shutil
 import socket
 import subprocess
 import sys
 import tempfile
+import threading
 import time
 import urllib.parse
 import urllib.request
+import uuid
 import webbrowser
-from dataclasses import dataclass
-from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+from dataclasses import asdict, dataclass, field
+from http.server import BaseHTTPRequestHandler, SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 DEFAULT_PROFILE = Path.home() / ".cache" / "bookcmp-chrome"
@@ -61,6 +68,24 @@ CHALLENGE_WAIT_S = 300
 CONTROL_POLL_S = 0.5
 # Counts bot checks cleared during a run, so a step that a check interrupted can start again.
 CHALLENGES_SOLVED = 0
+# Set by the --serve app so progress can be forwarded to the local page.
+REPORTER = None
+
+
+def set_reporter(reporter) -> None:
+    global REPORTER
+    REPORTER = reporter
+
+
+def report(kind: str, **fields) -> None:
+    """Send a progress event to the local page, if one is watching."""
+    reporter = REPORTER
+    if reporter is None:
+        return
+    try:
+        reporter(kind, fields)
+    except Exception:
+        pass
 
 CHROME_CANDIDATES = [
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -272,11 +297,13 @@ def wait_out_challenge(page, timeout: float = CHALLENGE_WAIT_S) -> None:
         f"Bot check on {host} — solve it in Chrome; waiting up to {int(timeout)}s…",
         flush=True,
     )
+    report("challenge", host=host, timeout=int(timeout))
     deadline = time.time() + timeout
     while time.time() < deadline:
         try:
             if not page_looks_challenged(page):
                 page.wait_for_timeout(500)
+                report("challenge-clear", host=host)
                 return
         except Exception:
             page.wait_for_timeout(1000)
@@ -640,54 +667,45 @@ def control_update(control, sites: list[dict]) -> None:
         pass
 
 
-def warmup(page, probes: dict[str, str] | None = None) -> None:
-    """Open each tricky site in its own tab and wait, in the browser, for the all-clear.
-
-    Each tab loads the URL the search will really use (probes), not just the
-    home page: Cloudflare clears one URL at a time, so a home page that is free
-    of checks proves nothing about the search page that follows.
-    """
+def warmup_status(context, tabs, probes: dict[str, str] | None = None) -> list[dict]:
+    """Per-site warm-up state, as shown in the browser (CLI) or the local page (--serve)."""
     probes = probes or {}
-    print("Warming up sites — each opens in its own tab so challenges are not replaced…", flush=True)
-    context = page.context
-    tabs: list[tuple[str, object]] = []
-    for index, (name, url) in enumerate(WARMUP_SITES):
-        target = probes.get(name) or url
-        tab = page if index == 0 else context.new_page()
-        tabs.append((name, tab))
-        print(f"  Opening {name}…", flush=True)
-        try:
-            tab.goto(target, wait_until="domcontentloaded", timeout=60000)
-        except Exception as exc:
-            print(f"  {name} failed to open: {exc}", flush=True)
+    site_urls = dict(WARMUP_SITES)
+    sites = []
+    for name, tab in tabs:
+        url = probes.get(name) or site_urls.get(name, "")
+        clearance = has_clearance_cookie(context, url) if name in CLOUDFLARE_SITES else None
+        state, note = warmup_state(tab, clearance)
+        sites.append({"name": name, "state": state, "note": note})
+    return sites
 
-    control = None
-    try:
-        control = context.new_page()
-        control.set_content(CONTROL_PAGE_HTML)
-        control.bring_to_front()
-    except Exception as exc:
-        print(f"Could not open the warm-up page in Chrome ({exc}); using the console instead.", flush=True)
-        if control is not None:
-            try:
-                control.close()
-            except Exception:
-                pass
+
+def confirm_in_browser(context):
+    """Ask for the all-clear on an injected page inside Chrome; used by the command line."""
+
+    def confirm(tabs, probes) -> list[dict]:
         control = None
+        try:
+            control = context.new_page()
+            control.set_content(CONTROL_PAGE_HTML)
+            control.bring_to_front()
+        except Exception as exc:
+            print(f"Could not open the warm-up page in Chrome ({exc}); using the console instead.", flush=True)
+            if control is not None:
+                try:
+                    control.close()
+                except Exception:
+                    pass
+            control = None
 
-    if control is None:
-        input("Press Enter when all challenges are cleared and you're ready to search… ")
-    else:
+        if control is None:
+            input("Press Enter when all challenges are cleared and you're ready to search… ")
+            return warmup_status(context, tabs, probes)
+
         print('Solve any challenges in Chrome, then press "Search all shops" on the warm-up tab.', flush=True)
-        site_urls = dict(WARMUP_SITES)
         sites: list[dict] = []
         while True:
-            sites = []
-            for name, tab in tabs:
-                url = probes.get(name) or site_urls[name]
-                clearance = has_clearance_cookie(context, url) if name in CLOUDFLARE_SITES else None
-                state, note = warmup_state(tab, clearance)
-                sites.append({"name": name, "state": state, "note": note})
+            sites = warmup_status(context, tabs, probes)
             control_update(control, sites)
             try:
                 flags = control.evaluate("() => ({go: !!window.__go, focus: window.__focus || ''})")
@@ -713,6 +731,41 @@ def warmup(page, probes: dict[str, str] | None = None) -> None:
         waiting = [site["name"] for site in sites if site["state"] != "ready"]
         if waiting:
             print(f"Starting with {', '.join(waiting)} not confirmed clear.", flush=True)
+        try:
+            control.close()
+        except Exception:
+            pass
+        return sites
+
+    return confirm
+
+
+def warmup(page, probes: dict[str, str] | None = None, confirm=None) -> list[dict]:
+    """Open each tricky site in its own tab and wait for the all-clear.
+
+    Each tab loads the URL the search will really use (probes), not just the
+    home page: Cloudflare clears one URL at a time, so a home page that is free
+    of checks proves nothing about the search page that follows.
+
+    confirm(tabs, probes) decides when to go on: the injected Chrome page on the
+    command line, the local web page under --serve.
+    """
+    probes = probes or {}
+    print("Warming up sites — each opens in its own tab so challenges are not replaced…", flush=True)
+    context = page.context
+    tabs: list[tuple[str, object]] = []
+    for index, (name, url) in enumerate(WARMUP_SITES):
+        target = probes.get(name) or url
+        tab = page if index == 0 else context.new_page()
+        tabs.append((name, tab))
+        print(f"  Opening {name}…", flush=True)
+        try:
+            tab.goto(target, wait_until="domcontentloaded", timeout=60000)
+        except Exception as exc:
+            print(f"  {name} failed to open: {exc}", flush=True)
+
+    confirm = confirm_in_browser(context) if confirm is None else confirm
+    sites = confirm(tabs, probes)
 
     for _, tab in tabs:
         if tab is not page:
@@ -720,15 +773,11 @@ def warmup(page, probes: dict[str, str] | None = None) -> None:
                 tab.close()
             except Exception:
                 pass
-    if control is not None:
-        try:
-            control.close()
-        except Exception:
-            pass
     try:
         page.bring_to_front()
     except Exception:
         pass
+    return sites
 
 
 def set_alibris_currency(page, domain: str, code: str) -> None:
@@ -979,6 +1028,7 @@ def justbooks_search_url(
     year: int | None = None,
     isbn: str | None = None,
     language: str = "ANY",
+    destination: str = "GB",
 ) -> str:
     params = {
         "author": author,
@@ -987,7 +1037,7 @@ def justbooks_search_url(
         "condition": "ANY",
         "binding": "ANY",
         "currency": "GBP",
-        "destination": "US",
+        "destination": destination,
         "viewAll": "true",
         "mode": "BASIC",
         "firstEdition": "false",
@@ -1003,6 +1053,155 @@ def justbooks_search_url(
     return "https://www.justbooks.co.uk/search?" + urllib.parse.urlencode(params)
 
 
+BOOKLOOKER_UA = (
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36"
+)
+# Booklooker sellers quote shipping in three columns: Deutschland, EU, Welt. JustBooks
+# always reports the German domestic rate for these offers, whatever destination was
+# asked for, so the seller's own table has to be read instead.
+BOOKLOOKER_EU_COUNTRIES = {
+    "AT", "BE", "BG", "HR", "CY", "CZ", "DK", "EE", "FI", "FR", "GR", "HU", "IE",
+    "IT", "LV", "LT", "LU", "MT", "NL", "PL", "PT", "RO", "SK", "SI", "ES", "SE",
+}
+# Median "Welt" rate for a book up to 1 kg in a 16-seller sample (range EUR 8.95-19.50),
+# used only where a seller publishes no table at all.
+BOOKLOOKER_FALLBACK_EUR = 19.50
+MAX_BOOKLOOKER_LOOKUPS = 6
+_booklooker_rates: dict[tuple[str, str], tuple[float | None, str, bool]] = {}
+
+
+def booklooker_item_id(url: str) -> str | None:
+    """The seller's item id from a booklooker offer link, or None for aggregate pages."""
+    if "resultnew.php" in url:
+        return None
+    match = re.search(r"[?&]id=([A-Za-z0-9]+)", url)
+    return match.group(1) if match else None
+
+
+def booklooker_columns(country: str) -> tuple[str, ...]:
+    """Shipping columns to try, best first, for a delivery country (ISO 3166-1 alpha-2)."""
+    if country == "DE":
+        return ("Deutschland",)
+    if country in BOOKLOOKER_EU_COUNTRIES:
+        return ("EU", "Europa", "Welt")
+    if country == "GB":
+        return ("Großbritannien", "Vereinigtes Königreich", "UK", "Welt", "weltweit")
+    return ("Welt", "weltweit")
+
+
+def _booklooker_cell_amount(cell: str) -> float | None:
+    """EUR amount from a table cell; '—' means the seller does not offer that rate."""
+    if not cell or "—" in cell or "–" in cell:
+        return None
+    match = re.search(r"([0-9]+(?:[.,][0-9]{1,2})?)", cell)
+    return float(match.group(1).replace(",", ".")) if match else None
+
+
+def _booklooker_shipping_table(markup: str) -> tuple[list[str] | None, list[list[str]]]:
+    table = re.search(r'<table class="shippingTable2".*?</table>', markup, re.S)
+    if not table:
+        return None, []
+    rows = []
+    for row in re.findall(r"<tr.*?</tr>", table.group(0), re.S):
+        cells = [
+            re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", cell))).strip()
+            for cell in re.findall(r"<t[dh][^>]*>(.*?)</t[dh]>", row, re.S)
+        ]
+        if cells:
+            rows.append(cells)
+    header = None
+    for row in rows:
+        if any(cell in ("Gewicht", "Anzahl", "Land") for cell in row):
+            header = row
+    data = [row for row in rows if row is not header and any("€" in cell or "—" in cell for cell in row)]
+    return header, data
+
+
+def booklooker_shipping(url: str, country: str) -> tuple[float | None, str, bool]:
+    """(EUR shipping to country, note, ships) for one booklooker offer link.
+
+    (None, note, True) means the rate is unknown; (None, note, False) means the
+    seller does not ship there at all.
+    """
+    if country == "DE":
+        return None, "German delivery; JustBooks' figure is the domestic rate", True
+    item = booklooker_item_id(url)
+    if not item:
+        return None, "aggregated new-book page; booklooker quotes German delivery only", True
+    key = (item, country)
+    if key in _booklooker_rates:
+        return _booklooker_rates[key]
+    result: tuple[float | None, str, bool]
+    try:
+        request = urllib.request.Request(
+            f"https://www.booklooker.de/app/detail.php?id={item}",
+            headers={"User-Agent": BOOKLOOKER_UA, "Accept-Language": "de-DE,de;q=0.9,en;q=0.5"},
+        )
+        with urllib.request.urlopen(request, timeout=25) as response:
+            markup = response.read().decode("utf-8", "replace")
+    except Exception as exc:
+        result = (None, f"booklooker page could not be read ({exc.__class__.__name__})", True)
+        _booklooker_rates[key] = result
+        return result
+    header, data = _booklooker_shipping_table(markup)
+    if not header or not data:
+        result = (None, "seller publishes no shipping table", True)
+    else:
+        index = None
+        for name in booklooker_columns(country):
+            for position, cell in enumerate(header):
+                if cell == name or (name == "Welt" and cell.startswith("Welt")):
+                    index = position
+        if index is None:
+            result = (None, "seller's table has no rate for this destination", False)
+        else:
+            amount = _booklooker_cell_amount(data[0][index]) if index < len(data[0]) else None
+            if amount is None:
+                result = (None, f"no {header[index]} rate ({data[0][0]} tier)", False)
+            else:
+                result = (amount, f"{header[index]}, {data[0][0]}", True)
+    _booklooker_rates[key] = result
+    return result
+
+
+def justbooks_offer_total(
+    offer: dict,
+    total_gbp: float,
+    country: str,
+    eur_rate: float | None,
+    lookups: list[int],
+) -> tuple[float | None, str]:
+    """Correct a booklooker offer's total with the seller's own shipping rate.
+
+    JustBooks quotes booklooker's German domestic shipping (often EUR 2.90) for
+    every destination, and nothing at all for the aggregated "neu" pages, so the
+    total has to be rebuilt from the seller's table. Returns (total, note), with
+    total None when the seller does not ship to country.
+    """
+    url = offer.get("href") or ""
+    quote = parse_amount(offer.get("ship") or "")
+    quoted = quote[0] if quote and quote[1] == "GBP" else 0.0
+    base = total_gbp - quoted
+    if country == "DE":
+        return total_gbp, ""
+    if len(lookups) >= MAX_BOOKLOOKER_LOOKUPS:
+        amount, note = BOOKLOOKER_FALLBACK_EUR, "too many booklooker offers to check them all"
+    else:
+        lookups.append(1)
+        amount, note, ships = booklooker_shipping(url, country)
+        if not ships:
+            return None, f"booklooker seller ships within Germany only ({note})"
+        if amount is None:
+            amount = BOOKLOOKER_FALLBACK_EUR
+            note = f"estimated; {note}"
+    if eur_rate is None:
+        return total_gbp, f"shipping {money_text(amount, 'EUR')} (no EUR rate to convert it)"
+    corrected = base + amount * eur_rate
+    quoted_text = f", not the {money_text(quoted, 'GBP')} JustBooks showed" if quoted else ""
+    return corrected, f"booklooker shipping {money_text(amount, 'EUR')} ({note}){quoted_text}"
+
+
 def justbooks_match(
     page,
     author: str,
@@ -1010,10 +1209,12 @@ def justbooks_match(
     year: int | None = None,
     isbn: str | None = None,
     language: str = "ANY",
+    destination: str = "GB",
+    eur_rate: float | None = None,
 ) -> Match:
     label = "justbooks match"
     language_name = next((name for code, name in LANGUAGES.values() if code == language), language)
-    search_url = justbooks_search_url(author, title, year, isbn, language)
+    search_url = justbooks_search_url(author, title, year, isbn, language, destination)
     try:
         goto(page, search_url)
         offers = []
@@ -1041,6 +1242,7 @@ def justbooks_match(
                   const ship = (card.innerText.match(/Includes shipping:\\s*[£$][0-9,.]+/i) || [''])[0];
                   return {
                     id,
+                    affiliate: card.getAttribute('data-csa-c-affiliate') || '',
                     title: card.getAttribute('data-csa-c-title') || '',
                     authors: card.getAttribute('data-csa-c-authors') || '',
                     seller: card.getAttribute('data-csa-c-seller') || '',
@@ -1061,7 +1263,7 @@ def justbooks_match(
 
     title_tokens = significant_tokens(title)
     author_tokens = significant_tokens(author)
-    best = None
+    candidates: list[tuple[float, dict]] = []
     for offer in offers:
         test_id = offer.get("id") or ""
         if "RENTAL" in test_id and "NON-RENTAL" not in test_id:
@@ -1088,18 +1290,48 @@ def justbooks_match(
         parsed = parse_amount(offer.get("text") or "")
         if not parsed or parsed[1] != "GBP":
             continue
-        total = parsed[0]
+        candidates.append((parsed[0], offer))
+
+    best = None
+    skipped: list[str] = []
+    lookups: list[int] = []
+    candidates.sort(key=lambda item: item[0])
+    # An offer that is not from booklooker needs no correction, so the cheapest of
+    # those is a hard floor: booklooker totals only ever rise, and nothing at or
+    # above the floor can win. That also keeps the number of page fetches small.
+    for total, offer in candidates:
+        if offer.get("affiliate") == "BOOKLOOKER" or "booklooker.de" in (offer.get("href") or ""):
+            continue
+        best = {"total": total, **offer, "shipping_note": ""}
+        break
+    floor = best["total"] if best is not None else None
+    for total, offer in candidates:
+        if floor is not None and total >= floor:
+            break
+        note = ""
+        if offer.get("affiliate") == "BOOKLOOKER" or "booklooker.de" in (offer.get("href") or ""):
+            total, note = justbooks_offer_total(offer, total, destination, eur_rate, lookups)
+            if total is None:
+                skipped.append(offer.get("title") or "offer")
+                continue
         if best is None or total < best["total"]:
-            best = {"total": total, **offer}
+            best = {"total": total, **offer, "shipping_note": note}
+
     if best is None:
-        return Match(label=label, search_url=search_url, error="No GBP offers were listed.")
-    ship = best.get("ship") or "shipping included in the total"
+        detail = "No GBP offers were listed."
+        if skipped:
+            detail = "No booklooker offer ships to the destination; no other GBP offer was listed."
+        return Match(label=label, search_url=search_url, error=detail)
+    ship = best.get("shipping_note") or best.get("ship") or "shipping included in the total"
     extra = ""
+    if skipped:
+        extra += f" {len(skipped)} booklooker offer(s) left out: those sellers do not ship to the destination."
     if year is not None:
         extra += f" Publication year {year}."
     if isbn:
         extra += f" ISBN {isbn}."
     extra += f" Books written in {language_name}."
+    destination_name = {"GB": "the United Kingdom", "US": "the United States"}.get(destination, destination)
     binding = best.get("binding") or ""
     who = best.get("authors") or "seller"
     detail_bits = [best.get("condition") or "Any"]
@@ -1116,9 +1348,56 @@ def justbooks_match(
         price_text=f"£{best['total']:.2f}",
         detail=(
             f"{'; '.join(detail_bits)}. "
-            f"GBP, standard shipping to the United States, all matches combined.{extra}"
+            f"GBP, shipping to {destination_name}, all matches combined.{extra}"
         ),
     )
+
+
+def justbooks_quote(
+    page,
+    author: str,
+    title: str,
+    year: int | None = None,
+    isbn: str | None = None,
+    language: str = "ANY",
+    destination: str = "BOTH",
+    eur_rate: float | None = None,
+) -> Match:
+    """JustBooks priced to the UK and to the US, with the cheaper of the two kept.
+
+    The offer sets differ by destination (sellers appear or drop out), and so do
+    the booklooker shipping rates, so both searches have to be run to know which
+    route is cheaper.
+    """
+    destination = (destination or "BOTH").upper()
+    if destination != "BOTH":
+        return justbooks_match(page, author, title, year, isbn, language, destination, eur_rate)
+
+    quotes = []
+    for country in ("GB", "US"):
+        print(f"  JustBooks, shipping to {country}…", flush=True)
+        quotes.append(justbooks_match(page, author, title, year, isbn, language, country, eur_rate))
+
+    priced = [quote for quote in quotes if quote.price_gbp is not None]
+    summary = []
+    for country, quote in zip(("GB", "US"), quotes):
+        name = {"GB": "the United Kingdom", "US": "the United States"}[country]
+        if quote.price_gbp is None:
+            reason = (quote.error or "no price").rstrip(".")
+            summary.append(f"nothing to {name} ({reason})")
+        else:
+            summary.append(f"£{quote.price_gbp:.2f} to {name}")
+    both = "; ".join(summary)
+
+    if not priced:
+        return Match(
+            label="justbooks match",
+            search_url=quotes[0].search_url,
+            error=f"No JustBooks offer for either destination ({both}).",
+        )
+    best = min(priced, key=lambda quote: quote.price_gbp)
+    best.detail = f"{best.detail} Both destinations quoted: {both}."
+    return best
 
 
 def ebay_cards(page) -> list[dict]:
@@ -1737,6 +2016,8 @@ def render_page(
     {f'EUR prices are converted at {eur_rate:.5f} GBP per EUR' + ((' (' + html.escape(eur_note) + ')') if eur_note else '') + '. ' if eur_rate is not None else ''}
     JustBooks and ZVAB search books written in {html.escape(language_name)}.
     Alibris, eBay, and AwesomeBooks do not filter by language.
+    Booklooker.de offers on JustBooks are priced with the seller's own shipping rate;
+    JustBooks itself quotes the German domestic rate for those offers.
     Alibris totals add the standard shipping shown on the copy. Digital formats are skipped.
     eBay is the cheapest Buy It Now in Books &amp; Magazines whose title contains the author and the title, including delivery to the United States (ebay.com) or the United Kingdom (ebay.co.uk).
     AwesomeBooks is British pounds with free UK delivery.
@@ -1773,6 +2054,806 @@ def serve(directory: Path, port: int) -> None:
         server.server_close()
 
 
+WEB_PAGE = """<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Book prices</title>
+<style>
+  body { margin: 0; font: 16px/1.45 "Iowan Old Style", Palatino, Georgia, serif; background: #f4f0e6; color: #1c1915; }
+  main { max-width: 820px; margin: 0 auto; padding: 32px 20px 64px; }
+  h1 { font-size: 1.8rem; margin: 0 0 2px; }
+  h2 { font-size: 1.05rem; margin: 26px 0 8px; }
+  .lede { color: #5c564c; margin: 0 0 20px; }
+  form { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px 14px; background: #fffdf8; border: 1px solid #ddd4c4; border-radius: 12px; padding: 16px 18px; }
+  label { display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem; color: #5c564c; }
+  input, select { font: inherit; font-size: 0.95rem; padding: 7px 9px; border: 1px solid #cfc4b0; border-radius: 8px; background: #fff; color: #1c1915; }
+  label.check { flex-direction: row; align-items: center; gap: 6px; font-size: 0.9rem; }
+  form .actions { display: flex; align-items: end; gap: 10px; }
+  button { font: inherit; border-radius: 999px; border: 1px solid #2f6f4e; background: #2f6f4e; color: #fffdf8; padding: 9px 20px; cursor: pointer; }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.secondary { background: transparent; color: #2f6f4e; border-color: #b9c9bd; font-size: 0.88rem; padding: 7px 14px; }
+  .notice { margin: 14px 0 0; padding: 10px 14px; border-radius: 10px; background: #f7e8c8; border: 1px solid #e2ca95; }
+  .notice.error { background: #f7dede; border-color: #e5b6b6; }
+  ul.sites, ul.shops { list-style: none; margin: 8px 0 0; padding: 0; }
+  ul.sites li, ul.shops li { display: flex; align-items: center; gap: 10px; background: #fffdf8; border: 1px solid #ddd4c4; border-radius: 10px; padding: 9px 14px; margin: 8px 0; }
+  .name { font-weight: 600; }
+  .note { color: #5c564c; font-size: 0.85rem; flex: 1; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #c9c0ad; flex: none; }
+  .dot.check { background: #b8791f; }
+  .dot.warn { background: #b8791f; }
+  .dot.ready, .dot.done { background: #2f6f4e; }
+  .dot.loading, .dot.running { background: #9a9a9a; }
+  .dot.failed, .dot.error { background: #8a2b2b; }
+  .dot.closed { background: #6b6257; }
+  .card { background: #fffdf8; border: 1px solid #ddd4c4; border-radius: 12px; padding: 16px 18px; margin: 14px 0; }
+  .card.best { border-color: #2f6f4e; box-shadow: inset 4px 0 0 #2f6f4e; }
+  .card h2 { margin: 0 0 8px; font-size: 1.05rem; }
+  .badge { display: inline-block; margin-left: 8px; background: #2f6f4e; color: white; border-radius: 999px; padding: 2px 8px; font: 12px/1.4 sans-serif; vertical-align: 2px; }
+  .price { font-size: 1.35rem; margin: 6px 0; }
+  .detail, .links, .error { margin: 6px 0; }
+  .detail { color: #3f3a33; }
+  .error { color: #8a2b2b; }
+  a { color: #1d4e89; }
+  footer { color: #5c564c; font-size: 0.9rem; margin-top: 40px; }
+  .hidden { display: none; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Book prices</h1>
+  <p class="lede">Cheapest shipped copy across JustBooks, Alibris (US and UK), eBay (US and UK), AwesomeBooks and ZVAB. Searches run in the Chrome window this page opened with; solve any bot checks there.</p>
+
+  <form id="form" autocomplete="off">
+    <label>Title <input name="title"></label>
+    <label>Author <input name="author"></label>
+    <label>ISBN <input name="isbn" placeholder="978-0-8028-4344-9"></label>
+    <label>Year <input name="year" type="number" min="1000" max="2100"></label>
+    <label>Language
+      <select name="language">
+        <option value="any">Any</option>
+        <option value="EN">English</option>
+        <option value="DE">German</option>
+        <option value="FR">French</option>
+        <option value="ES">Spanish</option>
+        <option value="IT">Italian</option>
+        <option value="NL">Dutch</option>
+      </select>
+    </label>
+    <label>JustBooks ships to
+      <select name="shipTo">
+        <option value="both">Cheapest of UK or US</option>
+        <option value="GB">United Kingdom</option>
+        <option value="US">United States</option>
+      </select>
+    </label>
+    <label class="check"><input type="checkbox" name="skipWarmup"> Skip warm-up</label>
+    <div class="actions"><button type="submit" id="search">Search</button></div>
+  </form>
+
+  <p class="notice hidden" id="notice"></p>
+
+  <section id="warmup" class="hidden">
+    <h2>Warm-up</h2>
+    <ul class="sites" id="sites"></ul>
+    <button id="go" disabled>Search all shops</button>
+    <button id="force" class="secondary">Search anyway</button>
+  </section>
+
+  <section id="shops" class="hidden">
+    <h2>Shops</h2>
+    <ul class="shops" id="shoplist"></ul>
+  </section>
+
+  <section id="results" class="hidden">
+    <h2 id="heading">Results</h2>
+    <div id="cards"></div>
+  </section>
+
+  <footer>
+    <p id="rates"></p>
+    <p><a href="#" id="quit">Stop server</a></p>
+  </footer>
+</main>
+<script>
+const TOKEN = "__TOKEN__";
+const PREFILL = __PREFILL__;
+const $ = (selector) => document.querySelector(selector);
+const SITE_LABELS = {check: "bot check showing", loading: "loading…", ready: "ready", failed: "did not load", closed: "tab closed"};
+let source = null;
+let jobId = "";
+let lastSeq = 0;
+
+function notice(text, isError) {
+  const box = $("#notice");
+  box.textContent = text || "";
+  box.className = "notice" + (text ? "" : " hidden") + (isError ? " error" : "");
+}
+
+async function post(path, payload) {
+  const response = await fetch(path, {
+    method: "POST",
+    headers: {"Content-Type": "application/json", "X-Bookcmp-Token": TOKEN},
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || response.statusText);
+  return data;
+}
+
+function dot(state) {
+  const span = document.createElement("span");
+  span.className = "dot " + state;
+  return span;
+}
+
+function link(href, text) {
+  const anchor = document.createElement("a");
+  anchor.href = href;
+  anchor.textContent = text;
+  anchor.target = "_blank";
+  anchor.rel = "noreferrer";
+  return anchor;
+}
+
+function resetPanels() {
+  lastSeq = 0;
+  $("#warmup").classList.add("hidden");
+  $("#shops").classList.add("hidden");
+  $("#results").classList.add("hidden");
+  $("#cards").replaceChildren();
+  $("#sites").replaceChildren();
+  $("#shoplist").replaceChildren();
+  notice("");
+}
+
+function renderSites(sites) {
+  const list = $("#sites");
+  list.replaceChildren();
+  for (const site of sites) {
+    const row = document.createElement("li");
+    const name = document.createElement("span");
+    name.className = "name";
+    name.textContent = site.name;
+    const note = document.createElement("span");
+    note.className = "note";
+    note.textContent = site.note || SITE_LABELS[site.state] || site.state;
+    row.append(dot(site.state === "ready" && site.note ? "warn" : site.state), name, note);
+    if (site.state !== "ready") {
+      const show = document.createElement("button");
+      show.className = "secondary";
+      show.textContent = "Show tab";
+      show.onclick = () => post("/api/focus", {job: jobId, site: site.name}).catch(() => {});
+      row.append(show);
+    }
+    list.append(row);
+  }
+  const ready = sites.length > 0 && sites.every((site) => site.state === "ready");
+  $("#go").disabled = !ready;
+  $("#go").textContent = ready ? "Search all shops" : "Waiting for " + sites.filter((site) => site.state !== "ready").map((site) => site.name).join(", ");
+}
+
+function shopRow(shop) {
+  $("#shops").classList.remove("hidden");
+  const row = document.createElement("li");
+  row.dataset.shop = shop;
+  const name = document.createElement("span");
+  name.className = "name";
+  name.textContent = shop;
+  const note = document.createElement("span");
+  note.className = "note";
+  note.textContent = "searching…";
+  row.append(dot("running"), name, note);
+  $("#shoplist").append(row);
+  return row;
+}
+
+function fillShop(shop, match) {
+  let row = $("#shoplist").querySelector('li[data-shop="' + CSS.escape(shop) + '"]');
+  if (!row) row = shopRow(shop);
+  row.replaceChildren(dot(match.error ? "error" : "done"));
+  const name = document.createElement("span");
+  name.className = "name";
+  name.textContent = shop;
+  const note = document.createElement("span");
+  note.className = "note";
+  note.textContent = match.error || match.price_text || "—";
+  row.append(name, note);
+}
+
+function card(match, best) {
+  const article = document.createElement("article");
+  article.className = "card" + (best ? " best" : "");
+  const heading = document.createElement("h2");
+  heading.textContent = match.label;
+  if (best) {
+    const badge = document.createElement("span");
+    badge.className = "badge";
+    badge.textContent = "Cheapest";
+    heading.append(badge);
+  }
+  article.append(heading);
+  if (match.error) {
+    const error = document.createElement("p");
+    error.className = "error";
+    error.textContent = match.error;
+    article.append(error);
+    return article;
+  }
+  const title = document.createElement("p");
+  title.className = "listing";
+  title.textContent = match.title;
+  const price = document.createElement("p");
+  price.className = "price";
+  price.textContent = match.price_text || "—";
+  const detail = document.createElement("p");
+  detail.className = "detail";
+  detail.textContent = match.detail;
+  const links = document.createElement("p");
+  links.className = "links";
+  if (match.url) links.append(link(match.url, "Open this listing"), " · ");
+  if (match.search_url) links.append(link(match.search_url, "Open the search"));
+  article.append(title, price, detail, links);
+  return article;
+}
+
+function renderCards(list) {
+  const priced = list.filter((item) => item.price_gbp !== null && item.price_gbp !== undefined);
+  let best = null;
+  for (const item of priced) if (best === null || item.price_gbp < best.price_gbp) best = item;
+  const cards = $("#cards");
+  cards.replaceChildren();
+  for (const item of list) cards.append(card(item, item === best));
+}
+
+function handle(event) {
+  switch (event.kind) {
+    case "warmup":
+      $("#warmup").classList.remove("hidden");
+      renderSites(event.sites || []);
+      break;
+    case "shop-start":
+      shopRow(event.shop);
+      break;
+    case "match":
+      fillShop(event.shop, event.match);
+      break;
+    case "challenge":
+      notice("Bot check on " + event.host + " — solve it in the Chrome window; waiting. If it is in a background tab, click its tab in Chrome.");
+      break;
+    case "challenge-clear":
+      notice("");
+      break;
+    case "done": {
+      $("#warmup").classList.add("hidden");
+      $("#results").classList.remove("hidden");
+      $("#heading").textContent = event.heading || "Results";
+      renderCards(event.matches || []);
+      const bits = [];
+      if (event.rate) bits.push("USD converted at " + Number(event.rate).toFixed(5) + " GBP per USD" + (event.rate_note ? " (" + event.rate_note + ")" : "") + ".");
+      if (event.eur_rate) bits.push("EUR converted at " + Number(event.eur_rate).toFixed(5) + " GBP per EUR.");
+      bits.push("JustBooks and ZVAB search books written in " + event.language_name + ".");
+      $("#rates").textContent = bits.join(" ");
+      finish("Search finished.");
+      break;
+    }
+    case "failed":
+      finish(event.error || "Search failed.", true);
+      break;
+  }
+}
+
+function finish(message, isError) {
+  notice(message, isError);
+  $("#search").disabled = false;
+  if (source) {
+    source.close();
+    source = null;
+  }
+}
+
+function listen(id) {
+  if (source) source.close();
+  source = new EventSource("/api/events?job=" + encodeURIComponent(id) + "&k=" + encodeURIComponent(TOKEN));
+  source.onmessage = (message) => {
+    const event = JSON.parse(message.data);
+    // EventSource reconnects and replays, so ignore anything already handled.
+    if (event.seq && event.seq <= lastSeq) return;
+    lastSeq = event.seq || lastSeq;
+    handle(event);
+  };
+  source.onerror = () => {
+    if (source && source.readyState === EventSource.CLOSED) finish("Lost the progress stream; the search may still be running.", true);
+  };
+}
+
+$("#form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const form = new FormData(event.target);
+  const payload = {
+    title: (form.get("title") || "").trim(),
+    author: (form.get("author") || "").trim(),
+    isbn: (form.get("isbn") || "").trim(),
+    year: (form.get("year") || "").trim(),
+    language: form.get("language") || "any",
+    shipTo: form.get("shipTo") || "both",
+    skipWarmup: form.get("skipWarmup") === "on",
+  };
+  resetPanels();
+  $("#search").disabled = true;
+  notice("Starting…");
+  try {
+    const started = await post("/api/search", payload);
+    jobId = started.job;
+    listen(jobId);
+  } catch (error) {
+    finish(error.message, true);
+  }
+});
+
+$("#go").onclick = () => post("/api/go", {job: jobId}).catch((error) => notice(error.message, true));
+$("#force").onclick = () => post("/api/go", {job: jobId}).catch((error) => notice(error.message, true));
+$("#quit").onclick = async (event) => {
+  event.preventDefault();
+  await post("/api/quit", {}).catch(() => {});
+  document.body.replaceChildren(document.createTextNode("Server stopped. Close this tab."));
+};
+
+if (PREFILL.title) $("#form").elements.title.value = PREFILL.title;
+if (PREFILL.author) $("#form").elements.author.value = PREFILL.author;
+if (PREFILL.isbn) $("#form").elements.isbn.value = PREFILL.isbn;
+if (PREFILL.year) $("#form").elements.year.value = PREFILL.year;
+if (PREFILL.language) $("#form").elements.language.value = PREFILL.language;
+if (PREFILL.shipTo) $("#form").elements.shipTo.value = PREFILL.shipTo;
+</script>
+</body>
+</html>
+"""
+
+
+@dataclass
+class Job:
+    id: str
+    query: dict
+    events: list = field(default_factory=list)
+    cond: threading.Condition = field(default_factory=threading.Condition)
+    go: threading.Event = field(default_factory=threading.Event)
+    focus: str = ""
+    finished: bool = False
+
+    def emit(self, kind: str, **fields) -> None:
+        with self.cond:
+            payload = {"seq": len(self.events) + 1, "kind": kind}
+            payload.update(fields)
+            self.events.append(payload)
+            self.cond.notify_all()
+
+    def last_seq(self) -> int:
+        with self.cond:
+            return len(self.events)
+
+    def wait_since(self, after: int, timeout: float = 15.0) -> list:
+        with self.cond:
+            if len(self.events) <= after and not self.finished:
+                self.cond.wait(timeout)
+            return self.events[after:]
+
+    def finish(self, error: str = "") -> None:
+        # Emit before marking finished: the event stream stops as soon as it sees
+        # finished, and the failure would otherwise race ahead of the close.
+        if error:
+            self.emit("failed", error=error)
+        with self.cond:
+            self.finished = True
+            self.cond.notify_all()
+
+
+class Searcher:
+    """Owns Chrome and Playwright on one thread, and runs searches one at a time."""
+
+    def __init__(self, profile: Path):
+        self.profile = profile
+        self.jobs: dict[str, Job] = {}
+        self.lock = threading.Lock()
+        self.queue: queue.Queue = queue.Queue()
+        self.thread: threading.Thread | None = None
+        self.stopping = threading.Event()
+        self.dead = ""
+        self.rate: float | None = None
+        self.rate_note = ""
+        self.eur_rate: float | None = None
+        self.eur_note = ""
+
+    def start(self) -> None:
+        self.thread = threading.Thread(target=self._run, name="searcher", daemon=True)
+        self.thread.start()
+
+    def stop(self, timeout: float = 15.0) -> None:
+        """Ask the worker to finish, so it can shut Chrome down cleanly."""
+        self.stopping.set()
+        self.queue.put(None)
+        if self.thread is not None:
+            self.thread.join(timeout)
+
+    def submit(self, query: dict) -> Job | str:
+        if self.dead:
+            return self.dead
+        with self.lock:
+            if any(not job.finished for job in self.jobs.values()):
+                return "A search is already running; wait for it to finish."
+            # Keep the last few finished jobs for anyone still reading their events.
+            finished = [job_id for job_id, job in self.jobs.items() if job.finished]
+            for job_id in finished[:-10]:
+                self.jobs.pop(job_id, None)
+        job = Job(id=uuid.uuid4().hex[:12], query=query)
+        with self.lock:
+            self.jobs[job.id] = job
+        self.queue.put(job)
+        return job
+
+    def job(self, job_id: str) -> Job | None:
+        with self.lock:
+            return self.jobs.get(job_id)
+
+    # -- worker thread -----------------------------------------------------
+    def _run(self) -> None:
+        from playwright.sync_api import sync_playwright
+
+        try:
+            port = free_port()
+            chrome = launch_chrome(port, self.profile)
+            try:
+                with sync_playwright() as playwright:
+                    browser = playwright.chromium.connect_over_cdp(f"http://127.0.0.1:{port}")
+                    context = browser.contexts[0]
+                    page = context.pages[0] if context.pages else context.new_page()
+                    while True:
+                        job = self.queue.get()
+                        if job is None or self.stopping.is_set():
+                            break
+                        self._search(job, context, page)
+            finally:
+                chrome.terminate()
+                try:
+                    chrome.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    chrome.kill()
+        except BaseException as exc:  # Chrome died, Playwright is missing, …
+            print(f"\nSearch worker stopped: {exc}", flush=True)
+            self.dead = f"Search worker stopped: {exc}"
+            with self.lock:
+                pending = [job for job in self.jobs.values() if not job.finished]
+            for job in pending:
+                job.finish(self.dead)
+
+    def _confirm(self, job: Job):
+        """Warm-up gate for the local page: wait for its button, report site state."""
+
+        def confirm(tabs, probes) -> list[dict]:
+            context = tabs[0][1].context
+            deadline = time.time() + 1800
+            sites: list[dict] = []
+            while True:
+                sites = warmup_status(context, tabs, probes)
+                job.emit("warmup", sites=sites)
+                if job.go.is_set():
+                    break
+                if self.stopping.is_set():
+                    raise RuntimeError("Server stopped during warm-up.")
+                if job.focus:
+                    for name, tab in tabs:
+                        if name == job.focus:
+                            try:
+                                tab.bring_to_front()
+                            except Exception:
+                                pass
+                    job.focus = ""
+                if all(site["state"] == "closed" for site in sites):
+                    raise RuntimeError("All warm-up tabs were closed.")
+                if time.time() > deadline:
+                    raise RuntimeError("Warm-up was not confirmed within 30 minutes.")
+                time.sleep(CONTROL_POLL_S)
+            waiting = [site["name"] for site in sites if site["state"] != "ready"]
+            if waiting:
+                print(f"Starting with {', '.join(waiting)} not confirmed clear.", flush=True)
+            return sites
+
+        return confirm
+
+    def _search(self, job: Job, context, page) -> None:
+        query = job.query
+        author, title = query["author"], query["title"]
+        isbn, year, language = query["isbn"], query["year"], query["language"]
+        language_name = query["language_name"]
+        set_reporter(job.emit)
+        job.emit("job-start", query={key: value for key, value in query.items() if key != "language_name"})
+        print(f"\nSearching for {title or isbn}…", flush=True)
+        try:
+            if self.rate is None:
+                self.rate, self.rate_note = fetch_usd_gbp()
+                self.eur_rate, self.eur_note = fetch_gbp_rate("EUR")
+            rate = self.rate or 0.0
+            rate_note = self.rate_note
+            eur_rate = self.eur_rate or rate
+            eur_note = self.eur_note or rate_note
+            if not query.get("skip_warmup"):
+                ship_to = str(query.get("ship_to") or "BOTH").upper()
+                warmup(
+                    page,
+                    {
+                        "JustBooks": justbooks_search_url(
+                            author, title, year, isbn, language, "GB" if ship_to == "BOTH" else ship_to
+                        ),
+                        "Alibris.com": alibris_search_url("alibris.com", author, title, year, isbn),
+                        "Alibris.co.uk": alibris_search_url("alibris.co.uk", author, title, year, isbn),
+                        "AwesomeBooks": awesomebooks_search_url(author, title, year, isbn),
+                    },
+                    confirm=self._confirm(job),
+                )
+            shops = [
+                ("JustBooks", lambda: justbooks_quote(
+                    page, author, title, year, isbn, language, query.get("ship_to") or "BOTH", eur_rate
+                )),
+                (
+                    "Alibris.com",
+                    lambda: alibris_match(page, "alibris.com", author, title, "USD", rate, rate_note, year, isbn),
+                ),
+                (
+                    "Alibris.co.uk",
+                    lambda: alibris_match(page, "alibris.co.uk", author, title, "GBP", rate, rate_note, year, isbn),
+                ),
+                (
+                    "eBay.com",
+                    lambda: ebay_match(page, "ebay.com", author, title, "1", "10001", rate, rate_note, year, isbn),
+                ),
+                (
+                    "eBay.co.uk",
+                    lambda: ebay_match(page, "ebay.co.uk", author, title, "3", "SW1A1AA", rate, rate_note, year, isbn),
+                ),
+                ("AwesomeBooks", lambda: awesomebooks_match(page, author, title, year, isbn)),
+                (
+                    "ZVAB",
+                    lambda: zvab_match(
+                        page, author, title, rate, eur_rate, eur_note, year, isbn, language, language_name
+                    ),
+                ),
+            ]
+            found = []
+            for name, run in shops:
+                print(f"Searching {name}…", flush=True)
+                job.emit("shop-start", shop=name)
+                match = run()
+                found.append(match)
+                if match.error:
+                    print(f"{name}: {match.error}", flush=True)
+                else:
+                    print(f"{name}: {match.price_text} — {match.title}", flush=True)
+                job.emit("match", shop=name, match=asdict(match))
+            heading, _ = display_heading(author, title, isbn, year, language_name)
+            if not title:
+                heading = next((m.title for m in found if m.title and not m.error), heading)
+            job.emit(
+                "done",
+                heading=heading,
+                matches=[asdict(match) for match in found],
+                rate=rate,
+                rate_note=rate_note,
+                eur_rate=eur_rate,
+                eur_note=eur_note,
+                language_name=language_name,
+            )
+        except Exception as exc:
+            print(f"Search failed: {exc}", flush=True)
+            job.finish(str(exc))
+            return
+        finally:
+            set_reporter(None)
+        job.finish()
+
+
+class App:
+    """State the HTTP handler needs: the worker, the access token, the form prefill."""
+
+    def __init__(self, searcher: Searcher, prefill: dict):
+        self.searcher = searcher
+        self.token = uuid.uuid4().hex[:16]
+        self.prefill = prefill
+
+    def token_ok(self, token: str | None) -> bool:
+        return bool(token) and token == self.token
+
+    def page(self) -> bytes:
+        prefill = json.dumps(self.prefill).replace("</", "<\\/")
+        return WEB_PAGE.replace("__TOKEN__", self.token).replace("__PREFILL__", prefill).encode()
+
+
+class AppHandler(BaseHTTPRequestHandler):
+    protocol_version = "HTTP/1.0"
+
+    def log_message(self, fmt, *args) -> None:  # keep the console for search progress
+        pass
+
+    @property
+    def app(self) -> App:
+        return self.server.app
+
+    def _send(self, status: int, content_type: str, body: bytes) -> None:
+        self.send_response(status)
+        self.send_header("Content-Type", content_type)
+        self.send_header("Content-Length", str(len(body)))
+        self.send_header("Cache-Control", "no-store")
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _json(self, status: int, payload: dict) -> None:
+        self._send(status, "application/json", json.dumps(payload).encode())
+
+    def do_GET(self) -> None:
+        parts = urllib.parse.urlsplit(self.path)
+        params = urllib.parse.parse_qs(parts.query)
+        if parts.path in ("/", "/index.html"):
+            self._send(200, "text/html; charset=utf-8", self.app.page())
+            return
+        if parts.path == "/api/events":
+            self._events(params)
+            return
+        if parts.path == "/favicon.ico":
+            self.send_response(204)
+            self.end_headers()
+            return
+        self._json(404, {"error": "not found"})
+
+    def do_POST(self) -> None:
+        parts = urllib.parse.urlsplit(self.path)
+        if not self.app.token_ok(self.headers.get("X-Bookcmp-Token")):
+            self._json(403, {"error": "bad or missing token"})
+            return
+        length = int(self.headers.get("Content-Length") or 0)
+        raw = self.rfile.read(length) if length else b"{}"
+        try:
+            data = json.loads(raw or b"{}")
+        except ValueError:
+            self._json(400, {"error": "bad JSON"})
+            return
+        if parts.path == "/api/search":
+            self._search(data)
+        elif parts.path in ("/api/go", "/api/focus"):
+            job = self.app.searcher.job(str(data.get("job") or ""))
+            if job is None:
+                self._json(404, {"error": "no such job"})
+                return
+            if parts.path == "/api/go":
+                job.go.set()
+            else:
+                job.focus = str(data.get("site") or "")
+            self._json(200, {"ok": True})
+        elif parts.path == "/api/quit":
+            self._json(200, {"ok": True})
+            threading.Thread(target=self.server.shutdown, daemon=True).start()
+        else:
+            self._json(404, {"error": "not found"})
+
+    def _events(self, params: dict) -> None:
+        if not self.app.token_ok((params.get("k") or [""])[0]):
+            self._json(403, {"error": "bad or missing token"})
+            return
+        job = self.app.searcher.job((params.get("job") or [""])[0])
+        if job is None:
+            self._json(404, {"error": "no such job"})
+            return
+        self.send_response(200)
+        self.send_header("Content-Type", "text/event-stream; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
+        self.send_header("Connection", "close")
+        self.end_headers()
+        after = 0
+        try:
+            while True:
+                events = job.wait_since(after, timeout=10.0)
+                for event in events:
+                    self.wfile.write(f"data: {json.dumps(event)}\n\n".encode())
+                    after = event["seq"]
+                if not events and not job.finished:
+                    self.wfile.write(b": ping\n\n")
+                self.wfile.flush()
+                if job.finished and after >= job.last_seq():
+                    break
+        except (BrokenPipeError, ConnectionResetError):
+            return
+
+    def _search(self, data: dict) -> None:
+        try:
+            isbn = normalize_isbn(str(data["isbn"])) if data.get("isbn") else None
+            language, language_name = normalize_language(str(data.get("language") or "any"))
+            year = int(data["year"]) if data.get("year") else None
+            if year is not None and not 1000 <= year <= 2100:
+                raise ValueError("Year must be between 1000 and 2100.")
+        except (KeyError, ValueError) as exc:
+            self._json(400, {"error": str(exc)})
+            return
+        author = str(data.get("author") or "").strip()
+        title = str(data.get("title") or "").strip()
+        if not isbn and not title:
+            self._json(400, {"error": "Give a title or an ISBN."})
+            return
+        ship_to = str(data.get("shipTo") or "both").upper()
+        if ship_to not in {"BOTH", "GB", "US"}:
+            self._json(400, {"error": "Ship-to must be both, GB or US."})
+            return
+        result = self.app.searcher.submit(
+            {
+                "author": author,
+                "title": title,
+                "isbn": isbn,
+                "year": year,
+                "language": language,
+                "language_name": language_name,
+                "ship_to": ship_to,
+                "skip_warmup": bool(data.get("skipWarmup")),
+            }
+        )
+        if isinstance(result, str):
+            self._json(409, {"error": result})
+            return
+        self._json(200, {"job": result.id})
+
+
+def serve_app(app: App, port: int) -> None:
+    """Serve the local search page, and keep serving until Ctrl-C or the page's Stop button."""
+    server = None
+    last_error = None
+    for candidate in range(port, port + 10):
+        try:
+            server = ThreadingHTTPServer(("127.0.0.1", candidate), AppHandler)
+            port = candidate
+            break
+        except OSError as exc:
+            last_error = exc
+    if server is None:
+        raise SystemExit(f"Could not listen near port {port}: {last_error}")
+    server.app = app  # type: ignore[attr-defined]
+    server.daemon_threads = True
+    url = f"http://127.0.0.1:{port}/?k={app.token}"
+    print(f"Open {url}", flush=True)
+    print("Ctrl-C here, or “Stop server” on the page, to quit.", flush=True)
+    webbrowser.open(url)
+    try:
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("\nStopping.", flush=True)
+    finally:
+        server.server_close()
+
+
+def run_app(args, author: str, title: str, isbn: str | None, year: int | None, language: str, language_name: str) -> None:
+    profile = resolve_profile(args.profile)
+    print(f"Chrome profile: {profile}", flush=True)
+    searcher = Searcher(profile)
+    print("Fetching USD and EUR to GBP rates…", flush=True)
+    try:
+        searcher.rate, searcher.rate_note = fetch_usd_gbp()
+        searcher.eur_rate, searcher.eur_note = fetch_gbp_rate("EUR")
+    except Exception as exc:
+        print(f"Could not fetch rates yet ({exc}); will try again with the first search.", flush=True)
+    searcher.start()
+    app = App(
+        searcher,
+        prefill={
+            "author": author,
+            "title": title,
+            "isbn": isbn or "",
+            "year": year or "",
+            "language": language if language != "ANY" else "any",
+            "shipTo": args.ship_to,
+        },
+    )
+    try:
+        serve_app(app, args.port)
+    finally:
+        searcher.stop()
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description="Find the cheapest shipped copy of a book and show it locally.")
     parser.add_argument("--author", default="", help="Author (optional).")
@@ -1797,6 +2878,15 @@ def main() -> None:
     )
     parser.add_argument("--port", type=int, default=8765)
     parser.add_argument(
+        "--ship-to",
+        default="both",
+        choices=("both", "GB", "US"),
+        help="JustBooks destination (default: both). With both, the search runs for the "
+        "United Kingdom and the United States and the cheaper total is kept, with both "
+        "quoted. Booklooker offers are priced at the seller's own rate for the country; "
+        "GB and US both fall in booklooker's non-EU 'Welt' column.",
+    )
+    parser.add_argument(
         "--profile",
         default=None,
         help=f"Chrome user-data-dir that keeps captcha clearance (default: {DEFAULT_PROFILE})",
@@ -1809,6 +2899,12 @@ def main() -> None:
         help="Skip opening JustBooks/Alibris/AwesomeBooks before searching (use when clearance is still fresh). "
         "Use --no-skip-warmup to force the warmup tabs (default).",
     )
+    parser.add_argument(
+        "--serve",
+        action="store_true",
+        help="Serve a local page and search from there instead of the command line. "
+        "Title/author/ISBN/year/language given here only prefill the form.",
+    )
     args = parser.parse_args()
     isbn = None
     if args.isbn:
@@ -1818,7 +2914,7 @@ def main() -> None:
             raise SystemExit(str(exc)) from exc
     author = (args.author or "").strip()
     title = (args.title or "").strip()
-    if not isbn and not title:
+    if not args.serve and not isbn and not title:
         raise SystemExit("Provide --isbn or --title. --author is optional.")
     if args.year is not None and not 1000 <= args.year <= 2100:
         raise SystemExit("--year must be between 1000 and 2100.")
@@ -1831,6 +2927,10 @@ def main() -> None:
         from playwright.sync_api import sync_playwright
     except ImportError:
         raise SystemExit("Install Playwright first: python3 -m pip install playwright")
+
+    if args.serve:
+        run_app(args, author, title, isbn, args.year, language, language_name)
+        return
 
     print("Fetching USD and EUR to GBP rates…", flush=True)
     rate, rate_date = fetch_usd_gbp()
@@ -1854,7 +2954,9 @@ def main() -> None:
                 warmup(
                     page,
                     {
-                        "JustBooks": justbooks_search_url(author, title, year, isbn, language),
+                        "JustBooks": justbooks_search_url(
+                            author, title, year, isbn, language, "GB" if args.ship_to == "both" else args.ship_to
+                        ),
                         "Alibris.com": alibris_search_url("alibris.com", author, title, year, isbn),
                         "Alibris.co.uk": alibris_search_url("alibris.co.uk", author, title, year, isbn),
                         "AwesomeBooks": awesomebooks_search_url(author, title, year, isbn),
@@ -1866,7 +2968,9 @@ def main() -> None:
                 print(f"Publication year: {year}", flush=True)
             print(f"Book language: {language_name}", flush=True)
             print("Searching JustBooks…", flush=True)
-            justbooks = justbooks_match(page, author, title, year, isbn, language)
+            justbooks = justbooks_quote(
+                page, author, title, year, isbn, language, args.ship_to, eur_rate
+            )
             print("Searching Alibris.com…", flush=True)
             alibris_us = alibris_match(page, "alibris.com", author, title, "USD", rate, rate_note, year, isbn)
             print("Searching Alibris.co.uk…", flush=True)
